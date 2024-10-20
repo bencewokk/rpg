@@ -18,7 +18,6 @@ TODO
 		- add a test character
 		- decide whether to use rendered map or not
 	unimportant:
-
 */
 
 import (
