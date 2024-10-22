@@ -16,7 +16,12 @@ LOGS
 	2024.10.20 ver 0.0.2
 	- Moved screenWidth annd screenHeight out of gamestate
 	- Added basic testmap
-	-
+
+	2024.10.21 ver 0.0.3
+	- Added a function create maps
+	- Added support on all screen sizes
+	- Started adding better mapgeneration
+
 
 TODO
 	important:
@@ -73,7 +78,7 @@ var (
 	screenWidth      = float32(width)
 	screenHeight     = float32(height)
 	screendivisor    = float32(120)
-	intscreendivisor = 120
+	intscreendivisor = screenHeight / 9
 )
 
 // Button struct definition
@@ -101,6 +106,8 @@ var testmap = gamemap{
 		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
 	},
 }
+
+var testmap2 = createMap()
 
 type gamemap struct {
 	// map data (2D array)
@@ -193,7 +200,6 @@ func (g *Game) Update() error {
 // Draw method of the Game
 func (g *Game) Draw(screen *ebiten.Image) {
 
-	fmt.Println(screenHeight, screenWidth)
 	switch globalGameState.stateid {
 	case 0:
 
@@ -224,7 +230,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			// one tile is 240x240 px so this would fill the whole screen
 			for i := 0; i < 9; i++ {
 				for j := 0; j < 16; j++ {
-					switch testmap.data[i][j] {
+					switch testmap2.data[i][j] {
 					case 0:
 						currenttilecolor = mlightgreen
 					case 1:
@@ -236,8 +242,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					}
 					vector.DrawFilledRect(
 						screen,
-						float32(j*intscreendivisor),
-						float32(i*intscreendivisor),
+						float32(j*int(intscreendivisor)),
+						float32(i*int(intscreendivisor)),
 						screendivisor,
 						screendivisor,
 						currenttilecolor,
@@ -257,6 +263,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	gameinit()
+	fmt.Println(createMap())
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
 	}
