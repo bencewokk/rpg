@@ -22,6 +22,10 @@ LOGS
 	- Added support on all screen sizes
 	- Started adding better mapgeneration
 
+	2024.10.23 ver 0.0.4
+	- Created way better map creation
+		- Changable map size
+		- Better randomization
 
 TODO
 	important:
@@ -53,6 +57,13 @@ func gameinit() {
 	ebiten.SetFullscreen(true)
 	ebiten.SetWindowTitle("rpg")
 
+	fmt.Println()
+
+	globalGameState.currentmap = createMap(36)
+
+	screendivisor = screenHeight / float32(globalGameState.currentmap.height)
+	intscreendivisor = int(screenHeight) / globalGameState.currentmap.height
+
 }
 
 // Color variable for ui
@@ -72,13 +83,19 @@ var (
 	currenttilecolor = color.RGBA{0, 0, 0, 0}
 )
 
+// Map
+var (
+	testmap2 gamemap
+)
+
 // Screen sizes
 var (
-	width, height    = ebiten.Monitor().Size()
-	screenWidth      = float32(width)
-	screenHeight     = float32(height)
-	screendivisor    = float32(120)
-	intscreendivisor = screenHeight / 9
+	width, height = ebiten.Monitor().Size()
+	screenWidth   = float32(width)
+	screenHeight  = float32(height)
+
+	screendivisor    float32
+	intscreendivisor int
 )
 
 // Button struct definition
@@ -93,27 +110,31 @@ type button struct {
 	inactiveColor color.RGBA
 }
 
-var testmap = gamemap{
-	data: [9][16]int{
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-		{2, 3, 0, 0, 3, 3, 3, 3, 1, 1, 0, 2, 0, 1, 0, 2},
-		{2, 3, 2, 3, 1, 3, 1, 2, 0, 0, 3, 3, 1, 2, 1, 2},
-		{2, 1, 3, 3, 2, 0, 3, 0, 3, 1, 3, 3, 2, 3, 2, 2},
-		{2, 1, 3, 3, 0, 2, 1, 1, 1, 2, 0, 3, 0, 0, 0, 2},
-		{2, 3, 1, 0, 1, 1, 0, 1, 3, 3, 2, 1, 1, 3, 3, 2},
-		{2, 2, 2, 3, 1, 0, 2, 1, 3, 3, 2, 1, 2, 3, 2, 2},
-		{2, 1, 1, 3, 3, 1, 3, 2, 0, 0, 2, 2, 0, 0, 1, 2},
-		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
-	},
-}
-
-var testmap2 = createMap()
+// var testmap = gamemap{
+// 	data: [9][16]int{
+// 		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+// 		{2, 3, 0, 0, 3, 3, 3, 3, 1, 1, 0, 2, 0, 1, 0, 2},
+// 		{2, 3, 2, 3, 1, 3, 1, 2, 0, 0, 3, 3, 1, 2, 1, 2},
+// 		{2, 1, 3, 3, 2, 0, 3, 0, 3, 1, 3, 3, 2, 3, 2, 2},
+// 		{2, 1, 3, 3, 0, 2, 1, 1, 1, 2, 0, 3, 0, 0, 0, 2},
+// 		{2, 3, 1, 0, 1, 1, 0, 1, 3, 3, 2, 1, 1, 3, 3, 2},
+// 		{2, 2, 2, 3, 1, 0, 2, 1, 3, 3, 2, 1, 2, 3, 2, 2},
+// 		{2, 1, 1, 3, 3, 1, 3, 2, 0, 0, 2, 2, 0, 0, 1, 2},
+// 		{2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2},
+// 	},
+// }
 
 type gamemap struct {
 	// map data (2D array)
 	//
-	//0 plains, 1 hills, 2 mountains, 3 forests
-	data [9][16]int
+	// 0 = not decided, 1 = mountains, 2 = plains, 3 = hills, 4 = forests
+	data [72][128]int
+
+	// height of the map
+	//
+	//used for rendering and generating the map
+	height int
+	width  int
 }
 
 // contains all global information about the game
@@ -129,9 +150,7 @@ type gamestate struct {
 	// maps are stored in arrays (see in type map)
 	//
 	//  this is the current map that is  being used//while rendered map array size is constant to 144 (16*9) currentmapid is not
-	currentmapid int
-
-	// character information
+	currentmap gamemap
 
 	// contains where the character is on the array
 	//
@@ -199,7 +218,6 @@ func (g *Game) Update() error {
 
 // Draw method of the Game
 func (g *Game) Draw(screen *ebiten.Image) {
-
 	switch globalGameState.stateid {
 	case 0:
 
@@ -223,37 +241,35 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		vector.DrawFilledRect(screen, 200, 25, screenWidth-250, screenHeight-50, uidarkgray, false)
 	case 3:
-		switch globalGameState.currentmapid {
-		case 0:
-			ebitenutil.DebugPrint(screen, "Test map")
-			// this is 32 because we are rendering that part of the map
-			// one tile is 240x240 px so this would fill the whole screen
-			for i := 0; i < 9; i++ {
-				for j := 0; j < 16; j++ {
-					switch testmap2.data[i][j] {
-					case 0:
-						currenttilecolor = mlightgreen
-					case 1:
-						currenttilecolor = mbrown
-					case 2:
-						currenttilecolor = mdarkgray
-					case 3:
-						currenttilecolor = mdarkgreen
-					}
-					vector.DrawFilledRect(
-						screen,
-						float32(j*int(intscreendivisor)),
-						float32(i*int(intscreendivisor)),
-						screendivisor,
-						screendivisor,
-						currenttilecolor,
-						false,
-					)
+		ebitenutil.DebugPrint(screen, "Test map")
+
+		// this is 32 because we are rendering that part of the map
+		// one tile is 240x240 px so this would fill the whole screen
+		// 0 = not decided, 1 = mountains, 2 = plains, 3 = hills, 4 = forests
+		for i := 0; i < globalGameState.currentmap.height; i++ {
+			for j := 0; j < globalGameState.currentmap.width; j++ {
+				switch globalGameState.currentmap.data[i][j] {
+				case 2:
+					currenttilecolor = mlightgreen
+				case 3:
+					currenttilecolor = mbrown
+				case 1:
+					currenttilecolor = mdarkgray
+				case 4:
+					currenttilecolor = mdarkgreen
 				}
+				vector.DrawFilledRect(
+					screen,
+					float32(j*int(intscreendivisor)),
+					float32(i*int(intscreendivisor)),
+					screendivisor,
+					screendivisor,
+					currenttilecolor,
+					false,
+				)
 			}
 		}
 	}
-
 }
 
 // Layout method of the Game
@@ -263,7 +279,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	gameinit()
-	fmt.Println(createMap())
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
 	}
