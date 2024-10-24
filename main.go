@@ -77,9 +77,9 @@ var (
 // Color variable for map rendering
 var (
 	mlightgreen      = color.RGBA{144, 238, 144, 255}
-	mbrown           = color.RGBA{139, 69, 19, 255}
+	mbrown           = color.RGBA{225, 216, 161, 255}
 	mdarkgray        = color.RGBA{169, 169, 169, 255}
-	mdarkgreen       = color.RGBA{34, 139, 34, 255}
+	mdarkgreen       = color.RGBA{75, 156, 0, 255}
 	currenttilecolor = color.RGBA{0, 0, 0, 0}
 )
 
