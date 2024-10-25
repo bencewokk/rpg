@@ -27,6 +27,10 @@ LOGS
 		- Changable map size
 		- Better randomization
 
+	2024.10.24 ver 0.0.5
+	- Added a character struct
+	- Addes standardized position struct
+
 TODO
 	important:
 		- add a test map  / done
@@ -46,7 +50,9 @@ ideas: different stats on different tile types
 import (
 	"fmt"
 	"image/color"
+	"image/png"
 	"log"
+	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -66,6 +72,11 @@ func gameinit() {
 
 }
 
+// Pos variables for cursor
+var (
+	curspos pos
+)
+
 // Color variable for ui
 var (
 	uigray        = color.RGBA{128, 128, 128, 255}
@@ -83,11 +94,6 @@ var (
 	currenttilecolor = color.RGBA{0, 0, 0, 0}
 )
 
-// Map
-var (
-	testmap2 gamemap
-)
-
 // Screen sizes
 var (
 	width, height = ebiten.Monitor().Size()
@@ -98,16 +104,38 @@ var (
 	intscreendivisor int
 )
 
+// Standard positioning used for everything
+type pos struct {
+	int_x, int_y     int
+	float_x, float_y float32
+}
+
+// Contains all information about the character
+type character struct {
+	title   string
+	pos     pos
+	picture *ebiten.Image
+}
+
 // Button struct definition
 type button struct {
 	title         string
-	x, y          float32
+	pos           pos
 	width, height float32
 	pressed       bool
 	hovered       bool
 	pressedColor  color.RGBA
 	hoveredColor  color.RGBA
 	inactiveColor color.RGBA
+}
+
+type slider struct {
+	title          string
+	pos            pos
+	width, height  float32
+	pressed        bool
+	hovered        bool
+	maxval, minval int
 }
 
 // var testmap = gamemap{
@@ -154,16 +182,15 @@ type gamestate struct {
 
 	// contains where the character is on the array
 	//
-	//this translates to gamemap[y][x]
-	currentcharposx, currentcharposy int
+	// this translates to gamemap[y][x]
+	//currentcharpos pos
 }
 
 // Create a new button
-func createButton(title string, x, y, width, height float32, pressedColor, hoveredColor, inactiveColor color.RGBA) button {
+func createButton(title string, width, height float32, pressedColor, hoveredColor, inactiveColor color.RGBA, pos pos) button {
 	return button{
 		title:         title,
-		x:             x,
-		y:             y,
+		pos:           pos,
 		width:         width,
 		height:        height,
 		pressedColor:  pressedColor,
@@ -172,14 +199,75 @@ func createButton(title string, x, y, width, height float32, pressedColor, hover
 	}
 }
 
+// Create a new slider
+func createSlider(title string, width, height float32, minval, maxval int, pos pos) slider {
+	return slider{
+		title:  title,
+		pos:    pos,
+		width:  width,
+		height: height,
+		minval: minval,
+		maxval: maxval,
+	}
+}
+
+func onearg_createPos(u float32) pos {
+	return pos{
+		int_x:   int(u),
+		int_y:   int(u),
+		float_x: u,
+		float_y: u,
+	}
+}
+
+func createPos(x, y float32) pos {
+	return pos{
+		int_x:   int(x),
+		int_y:   int(y),
+		float_x: x,
+		float_y: y,
+	}
+}
+
+// DrawSlider draws a slider and check for interaction
+func (s *slider) DrawSlider(screen *ebiten.Image) {
+
+}
+
+func createCharacter(path, title string) character {
+	var c character
+	// Open the image file
+	file, err := os.Open(title)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	// Decode the image file into an image.Image
+	imgData, err := png.Decode(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Convert the image.Image to an *ebiten.Image
+	c.picture = ebiten.NewImageFromImage(imgData)
+
+	return c
+}
+
+// DrawCharacter draws the character
+func (c character) DrawCharacter(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+
+	op.GeoM.Scale(100, 100)
+
+	c.picture.DrawImage(screen, op)
+}
+
 // DrawButton draws the button and checks for interaction
 func (b *button) DrawButton(screen *ebiten.Image) {
-	// Get the mouse position
-	intmx, intmy := ebiten.CursorPosition()
-	mx, my := float32(intmx), float32(intmy)
-
 	// Check if the mouse is inside the button's area
-	if mx >= b.x && mx <= b.x+b.width && my >= b.y && my <= b.y+b.height {
+	if curspos.float_x >= b.pos.float_x && curspos.float_x <= b.pos.float_x+b.width && curspos.float_y >= b.pos.float_y && curspos.float_y <= b.pos.float_y+b.height {
 		b.hovered = true
 		// Check if the left mouse button is pressed
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
@@ -203,10 +291,10 @@ func (b *button) DrawButton(screen *ebiten.Image) {
 	}
 
 	// Draw the button rectangle
-	vector.DrawFilledRect(screen, float32(b.x), float32(b.y), float32(b.width), float32(b.height), drawColor, false)
+	vector.DrawFilledRect(screen, b.pos.float_x, b.pos.float_y, float32(b.width), float32(b.height), drawColor, false)
 
 	// Draw the button title as text
-	ebitenutil.DebugPrintAt(screen, b.title, int(b.x)+10, int(b.y)+10)
+	ebitenutil.DebugPrintAt(screen, b.title, b.pos.int_x+10, b.pos.int_y+10)
 }
 
 type Game struct{}
@@ -218,22 +306,31 @@ func (g *Game) Update() error {
 
 // Draw method of the Game
 func (g *Game) Draw(screen *ebiten.Image) {
+	// Get the mouse position
+	intmx, intmy := ebiten.CursorPosition()
+	curspos.float_x, curspos.float_y = float32(intmx), float32(intmy)
+	curspos.int_x, curspos.int_y = intmx, intmy
+
+	//char := createCharacter("C:/Users/bence/Desktop/vsc/golang/rpg/character.png", "character")
+
+	//char.DrawCharacter(screen)
+
 	switch globalGameState.stateid {
 	case 0:
 
-		playbtn := createButton("Play", 25, 25, 150, 50, uitransparent, uilightgray, uigray)
+		playbtn := createButton("Play", 150, 50, uitransparent, uilightgray, uigray, onearg_createPos(25))
 		playbtn.DrawButton(screen)
 		if playbtn.pressed {
 			globalGameState.stateid = 3
 		}
 
-		optionsbtn := createButton("Options", 25, 85, 150, 50, uitransparent, uilightgray, uigray)
+		optionsbtn := createButton("Options", 150, 50, uitransparent, uilightgray, uigray, createPos(25, 85))
 		optionsbtn.DrawButton(screen)
 		if optionsbtn.pressed {
 			globalGameState.stateid = 1
 		}
 	case 1:
-		options_exitbtn := createButton("Back to menu", 25, 25, 150, 50, uitransparent, uilightgray, uigray)
+		options_exitbtn := createButton("Back to menu", 150, 50, uitransparent, uilightgray, uigray, onearg_createPos(25))
 		options_exitbtn.DrawButton(screen)
 		if options_exitbtn.pressed {
 			globalGameState.stateid = 0

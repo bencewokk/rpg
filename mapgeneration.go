@@ -12,15 +12,10 @@ const (
 	multipler_general_bottom = 1.3
 )
 
-// Takes a float64 between 0 and 1 and returns either true or false
+// Returns either true or false
 func calcChance(chance float64) bool {
 	flip := float64(rand.Intn(100))
-
-	if flip < chance {
-		return true
-	}
-
-	return false
+	return flip < chance
 }
 
 func createMap(_height int) gamemap {
