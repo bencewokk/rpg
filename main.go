@@ -43,8 +43,6 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	curspos.updatemouse()
 
-	char := createCharacter("character.png", "character")
-
 	switch globalGameState.stateid {
 	case 0:
 
@@ -70,9 +68,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case 3:
 		ebitenutil.DebugPrint(screen, "Test map")
 
-		// this is 32 because we are rendering that part of the map
-		// one tile is 240x240 px so this would fill the whole screen
-		// 0 = not decided, 1 = mountains, 2 = plains, 3 = hills, 4 = forests
+		//TODO redo this comment
 		for i := 0; i < globalGameState.currentmap.height; i++ {
 			for j := 0; j < globalGameState.currentmap.width; j++ {
 				switch globalGameState.currentmap.data[i][j] {
@@ -107,6 +103,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	gameinit()
+	go checkmovement()
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
 	}

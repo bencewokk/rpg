@@ -1,8 +1,8 @@
-DISCRIPTION
+**DISCRIPTION**
 
 	This is a basic RPG game made with Ebiten.
 
-LOGS
+**LOGS**
 
 	2024.10.19 ver 0.0.1
 	- This is the beginning of the game. The main game loop is set up,
@@ -27,8 +27,10 @@ LOGS
 	2024.10.24 ver 0.0.5
 	- Added a character struct
 	- Addes standardized position struct
+	- Added basic movemnet
+	- Split up main to different files
 
-TODO
+**TODO** 
 	important:
 		- add a test map  / done
 		- add a test character / done
@@ -39,6 +41,7 @@ TODO
 		- split up code into individual files / done
 		- move readme to readme /done
 
-for me
 
-ideas: different stats on different tile types
+*for me*
+
+	ideas: different stats on different tile types

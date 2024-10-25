@@ -5,6 +5,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
@@ -50,6 +51,12 @@ type slider struct {
 	pressed        bool
 	hovered        bool
 	maxval, minval int
+}
+
+func ptid(pos pos) (int, int) {
+	var x, y int
+
+	return x, y
 }
 
 // Pos variables for cursor
@@ -118,7 +125,7 @@ func (b *button) DrawButton(screen *ebiten.Image) {
 	if curspos.float_x >= b.pos.float_x && curspos.float_x <= b.pos.float_x+b.width && curspos.float_y >= b.pos.float_y && curspos.float_y <= b.pos.float_y+b.height {
 		b.hovered = true
 		// Check if the left mouse button is pressed
-		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			b.pressed = true
 		} else {
 			b.pressed = false

@@ -35,12 +35,10 @@ type gamestate struct {
 	//
 	//  this is the current map that is  being used//while rendered map array size is constant to 144 (16*9) currentmapid is not
 	currentmap gamemap
-
-	// contains where the character is on the array
-	//
-	// this translates to gamemap[y][x]
-	//currentcharpos pos
 }
+
+// Global variable for player
+var char character = createCharacter("character.png", "character")
 
 // Contains all information about the character
 type character struct {
@@ -77,7 +75,7 @@ func (c character) DrawCharacter(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	c.picture.Bounds()
 	// Draw the character's image onto the screen
-	op.GeoM.Translate(float64(c.pos.int_x), float64(c.pos.int_y))
+	op.GeoM.Translate(float64(c.pos.float_x), float64(c.pos.float_y))
 
 	// Original image size
 	originalWidth, originalHeight := c.picture.Size()
