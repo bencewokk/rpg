@@ -42,9 +42,10 @@ var char character = createCharacter("character.png", "character")
 
 // Contains all information about the character
 type character struct {
-	title   string
-	pos     pos
-	picture *ebiten.Image
+	title       string
+	pos         pos
+	picture     *ebiten.Image
+	curtiletype int
 }
 
 // Returns a character with the given title and path to the picture
