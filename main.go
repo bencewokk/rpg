@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -12,8 +11,6 @@ import (
 func gameinit() {
 	ebiten.SetFullscreen(true)
 	ebiten.SetWindowTitle("rpg")
-
-	fmt.Println()
 
 	globalGameState.currentmap = createMap(36)
 

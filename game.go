@@ -47,6 +47,7 @@ type character struct {
 	picture *ebiten.Image
 }
 
+// Returns a character with the given title and path to the picture
 func createCharacter(path, title string) character {
 	var c character
 	c.title = title

@@ -80,22 +80,6 @@ func createMap(_height int) gamemap {
 			} else {
 				m.data[i][j] = 2 // Plains
 			}
-
-			// // Update the chances for each iteration
-			// forestchance *= multipler_forestchance
-			// hillchance *= multipler_hillchance
-			// mountainchance *= multipler_mountainchance
-
-			//  else {
-			// 	// Compare random value to each chance
-			// 	if r < mountainchance {
-			// 		m.data[i][j] = 1 // Mountain
-			// 	} else if r < mountainchance+hillchance {
-			// 		m.data[i][j] = 3 // Hill
-			// 	} else {
-			// 		m.data[i][j] = 4 // Forest
-			// 	}
-
 		}
 	}
 

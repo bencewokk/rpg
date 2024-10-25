@@ -1,47 +1,51 @@
-**DISCRIPTION**
+# RPG Game with Ebiten
 
-	This is a basic RPG game made with Ebiten.
+## Description
 
-**LOGS**
+This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game engine for Go. The game is still in its early stages, with basic setup, character movement, and a procedurally generated map. 
 
-	2024.10.19 ver 0.0.1
-	- This is the beginning of the game. The main game loop is set up,
-	  but no game logic has been implemented yet.
-	- Added button ui functions and basic game variables such as gamestate.
-	- Started the menu with options and play buttons
+## Logs
 
-	2024.10.20 ver 0.0.2
-	- Moved screenWidth annd screenHeight out of gamestate
-	- Added basic testmap
+### Version History
 
-	2024.10.21 ver 0.0.3
-	- Added a function create maps
-	- Added support on all screen sizes
-	- Started adding better mapgeneration
+#### 2024.10.19 - Version 0.0.1
+- Initial setup of the game loop (no game logic implemented yet).
+- Added button UI functions and basic game variables, such as `gamestate`.
+- Started menu with options and play buttons.
 
-	2024.10.23 ver 0.0.4
-	- Created way better map creation
-		- Changable map size
-		- Better randomization
+#### 2024.10.20 - Version 0.0.2
+- Moved `screenWidth` and `screenHeight` out of `gamestate`.
+- Added a basic test map.
 
-	2024.10.24 ver 0.0.5
-	- Added a character struct
-	- Addes standardized position struct
-	- Added basic movemnet
-	- Split up main to different files
+#### 2024.10.21 - Version 0.0.3
+- Implemented a function for map creation.
+- Added support for all screen sizes.
+- Began improvements on map generation.
 
-**TODO** 
-	important:
-		- add a test map  / done
-		- add a test character / done
-		- decide whether to use rendered map or not / done
-		- better map creation 
-        - basic gameplay
-	unimportant:
-		- split up code into individual files / done
-		- move readme to readme /done
+#### 2024.10.23 - Version 0.0.4
+- Enhanced map creation:
+  - Adjustable map size.
+  - Improved randomization.
 
+#### 2024.10.24 - Version 0.0.5
+- Created a `Character` struct.
+- Standardized position handling with a `Position` struct.
+- Added basic character movement.
+- Refactored code by splitting `main` into multiple files.
 
-*for me*
+## TODO
 
-	ideas: different stats on different tile types
+### Important
+- [x] Add a test map.
+- [x] Add a test character.
+- [x] Decide on rendered map usage.
+- [ ] Improve map creation.
+- [ ] Implement basic gameplay.
+
+### Unimportant
+- [x] Split code into separate files.
+- [x] Move README content to `README.md`.
+
+## Ideas for Future Development
+
+- Introduce unique stats for different tile types to create more strategic gameplay elements.
