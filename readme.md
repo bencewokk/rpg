@@ -41,6 +41,7 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 - [x] Decide on rendered map usage.
 - [ ] Improve map creation.
 - [ ] Implement basic gameplay.
+- [ ] Add delta time for movement since right now it is based on the framerate
 
 ### Unimportant
 - [x] Split code into separate files.

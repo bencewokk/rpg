@@ -89,6 +89,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				)
 			}
 		}
+
+		go checkmovement()
 		char.DrawCharacter(screen)
 	}
 }
@@ -100,7 +102,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	gameinit()
-	go checkmovement()
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
 	}

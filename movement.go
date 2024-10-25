@@ -2,6 +2,8 @@ package main
 
 //
 import (
+	"time"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -13,7 +15,8 @@ func checkNextTile() bool {
 func checkmovement() {
 
 	for {
-		if checkNextTile() {
+		time.Sleep(2500000)
+		if !checkNextTile() {
 			if ebiten.IsKeyPressed(ebiten.KeyD) {
 				char.pos.float_x += 0.3
 			}
