@@ -33,6 +33,9 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 - Added basic character movement.
 - Refactored code by splitting `main` into multiple files.
 
+#### 2024.10.31 - Version 0.0.6
+- Fixed movement
+
 ## TODO
 
 ### Important
@@ -42,6 +45,7 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 - [ ] Improve map creation.
 - [ ] Implement basic gameplay.
 - [ ] Add delta time for movement since right now it is based on the framerate
+- [ ] Fix bug related to moving trough close spaces
 
 ### Unimportant
 - [x] Split code into separate files.

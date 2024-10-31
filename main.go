@@ -17,6 +17,8 @@ func gameinit() {
 	screendivisor = screenHeight / float32(globalGameState.currentmap.height)
 	intscreendivisor = int(screenHeight) / globalGameState.currentmap.height
 
+	char.pos.float_y = 30
+	char.pos.float_x = 30
 }
 
 // Screen sizes
@@ -29,6 +31,8 @@ var (
 	intscreendivisor int
 )
 
+var speed float32 = 5
+
 type Game struct{}
 
 // Update method of the Game
@@ -38,6 +42,7 @@ func (g *Game) Update() error {
 
 // Draw method of the Game
 func (g *Game) Draw(screen *ebiten.Image) {
+	debug()
 	curspos.updatemouse()
 
 	switch globalGameState.stateid {
@@ -63,9 +68,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		vector.DrawFilledRect(screen, 200, 25, screenWidth-250, screenHeight-50, uidarkgray, false)
 	case 3:
-		ebitenutil.DebugPrint(screen, "Test map")
 
-		//TODO redo this comment
+		//TODO redo this comment and make this into a function
 		for i := 0; i < globalGameState.currentmap.height; i++ {
 			for j := 0; j < globalGameState.currentmap.width; j++ {
 				switch globalGameState.currentmap.data[i][j] {
@@ -80,8 +84,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				}
 				vector.DrawFilledRect(
 					screen,
-					float32(j*int(intscreendivisor)),
-					float32(i*int(intscreendivisor)),
+					float32(j*intscreendivisor),
+					float32(i*intscreendivisor),
 					screendivisor,
 					screendivisor,
 					currenttilecolor,
@@ -90,8 +94,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			}
 		}
 
-		go checkmovement()
 		char.DrawCharacter(screen)
+		checkmovement()
+		ebitenutil.DebugPrint(screen, "test map")
 	}
 }
 

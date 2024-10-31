@@ -74,21 +74,15 @@ func createCharacter(path, title string) character {
 
 // DrawCharacter draws the character
 func (c character) DrawCharacter(screen *ebiten.Image) {
+
 	op := &ebiten.DrawImageOptions{}
-	c.picture.Bounds()
-	// Draw the character's image onto the screen
-	op.GeoM.Translate(float64(c.pos.float_x), float64(c.pos.float_y))
 
-	// Original image size
 	originalWidth, originalHeight := c.picture.Size()
-
-	// Calculate scaling factors
-	scaleX := float64(screendivisor) / float64(originalWidth) * 1.1
-	scaleY := float64(screendivisor) / float64(originalHeight) * 1.1
-
-	// Apply scaling factors
+	scaleX := float64(screendivisor) / float64(originalWidth)
+	scaleY := float64(screendivisor) / float64(originalHeight)
 	op.GeoM.Scale(scaleX, scaleY)
 
-	// Draw the character's image onto the screen
+	op.GeoM.Translate(float64(c.pos.float_x), float64(c.pos.float_y))
+
 	screen.DrawImage(c.picture, op)
 }

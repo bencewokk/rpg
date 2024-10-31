@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -54,17 +53,14 @@ type slider struct {
 	maxval, minval int
 }
 
+func debug() {
+}
+
+// ptid calculates and returns the tile coordinates based on the given position.
 func ptid(pos pos) (int, int) {
-	var x, y int
-
-	x = int(pos.float_x) / int(screendivisor) / globalGameState.currentmap.height
-	y = int(pos.float_y) / int(screendivisor) / globalGameState.currentmap.width
-
-	//overflow
-	globalGameState.currentmap.data[y][x] = 4
-
-	fmt.Println(x, " ", y)
-
+	// Calculate the tile coordinates based on the character's position
+	x := int(pos.float_x / screendivisor)
+	y := int(pos.float_y / screendivisor)
 	return x, y
 }
 
