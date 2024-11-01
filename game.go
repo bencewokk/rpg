@@ -1,11 +1,7 @@
 package main
 
 import (
-	"image/png"
-	"log"
-	"os"
-
-	"github.com/hajimehoshi/ebiten/v2"
+	"time"
 )
 
 type gamemap struct {
@@ -35,54 +31,12 @@ type gamestate struct {
 	//
 	//  this is the current map that is  being used//while rendered map array size is constant to 144 (16*9) currentmapid is not
 	currentmap gamemap
-}
 
-// Global variable for player
-var char character = createCharacter("character.png", "character")
+	// counts the time since start of game
+	//
+	// get updated every frame
+	deltatime float64
 
-// Contains all information about the character
-type character struct {
-	title       string
-	pos         pos
-	picture     *ebiten.Image
-	curtiletype int
-}
-
-// Returns a character with the given title and path to the picture
-func createCharacter(path, title string) character {
-	var c character
-	c.title = title
-
-	// Open the image file
-	file, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	// Decode the image file into an image.Image
-	imgData, err := png.Decode(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Convert the image.Image to an *ebiten.Image
-	c.picture = ebiten.NewImageFromImage(imgData)
-
-	return c
-}
-
-// DrawCharacter draws the character
-func (c character) DrawCharacter(screen *ebiten.Image) {
-
-	op := &ebiten.DrawImageOptions{}
-
-	originalWidth, originalHeight := c.picture.Size()
-	scaleX := float64(screendivisor) / float64(originalWidth)
-	scaleY := float64(screendivisor) / float64(originalHeight)
-	op.GeoM.Scale(scaleX, scaleY)
-
-	op.GeoM.Translate(float64(c.pos.float_x), float64(c.pos.float_y))
-
-	screen.DrawImage(c.picture, op)
+	// date of last update
+	lastUpdateTime time.Time
 }

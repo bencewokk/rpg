@@ -36,6 +36,12 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 #### 2024.10.31 - Version 0.0.6
 - Fixed movement
 
+#### 2024.11.01 - version 0.0.7
+- Added delta time
+- Added enemies
+  - You bounce of the enemies
+- Added a few collision detections
+
 ## TODO
 
 ### Important
@@ -44,13 +50,15 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 - [x] Decide on rendered map usage.
 - [ ] Improve map creation.
 - [ ] Implement basic gameplay.
-- [ ] Add delta time for movement since right now it is based on the framerate
+- [x] Add delta time for movement since right now it is based on the framerate
 - [ ] Fix bug related to moving trough close spaces
+- [ ] Add texture handling
 
 ### Unimportant
 - [x] Split code into separate files.
 - [x] Move README content to `README.md`.
-
+- [ ] Add textures and replace placeholder sprites
 ## Ideas for Future Development
 
 - Introduce unique stats for different tile types to create more strategic gameplay elements.
+- Add hurt to enemies on collision

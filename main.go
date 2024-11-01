@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -31,8 +32,6 @@ var (
 	intscreendivisor int
 )
 
-var speed float32 = 5
-
 type Game struct{}
 
 // Update method of the Game
@@ -43,6 +42,11 @@ func (g *Game) Update() error {
 // Draw method of the Game
 func (g *Game) Draw(screen *ebiten.Image) {
 	debug()
+
+	now := time.Now()
+	globalGameState.deltatime = now.Sub(globalGameState.lastUpdateTime).Seconds()
+	globalGameState.lastUpdateTime = now
+
 	curspos.updatemouse()
 
 	switch globalGameState.stateid {
@@ -95,7 +99,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 
 		char.DrawCharacter(screen)
-		checkmovement()
+		checkMovement()
+
+		for i := 0; i < len(enemies); i++ {
+			enemies[i].Draw(screen)
+		}
+
 		ebitenutil.DebugPrint(screen, "test map")
 	}
 }

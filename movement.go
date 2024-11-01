@@ -2,118 +2,52 @@ package main
 
 //
 import (
+	"fmt"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// 0 up, 1 down, 2 right, 3 left
-func checkNextTile(way int) bool {
+var (
+	speed       float32 = 250
+	lastTwoWays [2]int
+)
 
-	//top left corner
-	topleftx, toplefty := char.pos.float_x, char.pos.float_y
-	topleftpos := createPos(topleftx, toplefty)
-
-	//top right corner
-	toprightx, toprighty := char.pos.float_x+screendivisor, char.pos.float_y
-	toprightpos := createPos(toprightx, toprighty)
-
-	// //bottom left corner
-	bottomleftx, bottomlefty := char.pos.float_x, char.pos.float_y+screendivisor
-	bottomleftpos := createPos(bottomleftx, bottomlefty)
-
-	// //bottom right corner
-	bottomrightx, bottomrighty := char.pos.float_x+screendivisor, char.pos.float_y+screendivisor
-	bottomrightpos := createPos(bottomrightx, bottomrighty)
-
-	var x, y int
-
-	switch way {
-	//up
-	case 0:
-		topleftpos.float_y -= speed
-		toprightpos.float_y -= speed
-
-		x, y = ptid(topleftpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
-			return false
-		}
-
-		x, y = ptid(toprightpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
-			return false
-		}
-
-		return true
-	//down
-	case 1:
-		bottomrightpos.float_y += speed
-		bottomleftpos.float_y += speed
-
-		x, y = ptid(bottomleftpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
-			return false
-		}
-
-		x, y = ptid(bottomrightpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
-			return false
-		}
-
-		return true
-
-	//right
-	case 2:
-		bottomrightpos.float_x += speed
-		toprightpos.float_x += speed
-
-		x, y = ptid(bottomrightpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
-			return false
-		}
-
-		x, y = ptid(toprightpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
-			return false
-		}
-
-		return true
-
-	//left
-	case 3:
-		topleftpos.float_x -= speed
-		bottomleftpos.float_x -= speed
-
-		x, y = ptid(topleftpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
-			return false
-		}
-
-		x, y = ptid(bottomleftpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
-			return false
-		}
-
-		return true
-	}
-	return false
-}
-
-func checkmovement() {
+func checkMovement() {
+	// Log current character position (for debugging)
 	ptid(char.pos)
 
-	if ebiten.IsKeyPressed(ebiten.KeyD) && checkNextTile(2) {
-		char.pos.float_x += speed
+	// Handle movement based on key presses and check next tile for collisions
+	if ebiten.IsKeyPressed(ebiten.KeyD) && checkNextTile(2) { // Move right
+		char.pos.float_x += speed * float32(globalGameState.deltatime)
+		updateLastTwoWays(2)
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyA) && checkNextTile(3) {
-		char.pos.float_x -= speed
+	if ebiten.IsKeyPressed(ebiten.KeyA) && checkNextTile(3) { // Move left
+		char.pos.float_x -= speed * float32(globalGameState.deltatime)
+		updateLastTwoWays(3)
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyW) && checkNextTile(0) {
-		char.pos.float_y -= speed
+	if ebiten.IsKeyPressed(ebiten.KeyW) && checkNextTile(0) { // Move up
+		char.pos.float_y -= speed * float32(globalGameState.deltatime)
+		updateLastTwoWays(0)
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyS) && checkNextTile(1) {
-		char.pos.float_y += speed
+	if ebiten.IsKeyPressed(ebiten.KeyS) && checkNextTile(1) { // Move down
+		char.pos.float_y += speed * float32(globalGameState.deltatime)
+		updateLastTwoWays(1)
 	}
 
+	// Check for collisions with enemies
+	for i := range enemies {
+		if checkCollision(char.pos, enemies[i].pos) {
+			fmt.Println("test2")
+			char.Hurt(enemies[i].pos) // Call the Hurt method on collision
+		}
+	}
+}
+
+// updateLastTwoWays updates the last two directions the character moved
+func updateLastTwoWays(direction int) {
+	lastTwoWays[1] = lastTwoWays[0]
+	lastTwoWays[0] = direction
 }
