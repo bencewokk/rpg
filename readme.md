@@ -42,6 +42,10 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
   - You bounce of the enemies
 - Added a few collision detections
 
+#### 2024.11.01 - version 0.0.8
+- Added sliders to util package
+- Started working on adding dashing 
+
 ## TODO
 
 ### Important
@@ -50,15 +54,26 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 - [x] Decide on rendered map usage.
 - [ ] Improve map creation.
 - [ ] Implement basic gameplay.
+  - [ ] Add hp to enemies 
 - [x] Add delta time for movement since right now it is based on the framerate
 - [ ] Fix bug related to moving trough close spaces
 - [ ] Add texture handling
+- [ ] Add ui bar 
 
 ### Unimportant
 - [x] Split code into separate files.
 - [x] Move README content to `README.md`.
 - [ ] Add textures and replace placeholder sprites
+- [ ] Add upscaling for sliders in util package
+- [ ] Add function for handling animations
+
 ## Ideas for Future Development
 
 - Introduce unique stats for different tile types to create more strategic gameplay elements.
-- Add hurt to enemies on collision
+- Better movement such as dashing or jumping
+
+### Notes
+
+## Adding animations
+
+You should generally add a new function to a struct if you are planning on adding an animation

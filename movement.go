@@ -44,6 +44,7 @@ func checkMovement() {
 			char.Hurt(enemies[i].pos) // Call the Hurt method on collision
 		}
 	}
+
 }
 
 // updateLastTwoWays updates the last two directions the character moved

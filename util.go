@@ -14,6 +14,7 @@ var (
 	uigray        = color.RGBA{128, 128, 128, 255}
 	uidarkgray    = color.RGBA{100, 100, 100, 255}
 	uilightgray   = color.RGBA{158, 158, 158, 255}
+	uilightgray2  = color.RGBA{190, 190, 190, 255}
 	uitransparent = color.RGBA{0, 0, 0, 0}
 )
 
@@ -51,6 +52,9 @@ type slider struct {
 	pressed        bool
 	hovered        bool
 	maxval, minval int
+	pressedColor   color.RGBA
+	hoveredColor   color.RGBA
+	inactiveColor  color.RGBA
 }
 
 func debug() {
@@ -90,14 +94,17 @@ func createButton(title string, width, height float32, pressedColor, hoveredColo
 }
 
 // Create a new slider
-func createSlider(title string, width, height float32, minval, maxval int, pos pos) slider {
+func createSlider(title string, width, height float32, minval, maxval int, pressedColor, hoveredColor, inactiveColor color.RGBA, pos pos) slider {
 	return slider{
-		title:  title,
-		pos:    pos,
-		width:  width,
-		height: height,
-		minval: minval,
-		maxval: maxval,
+		title:         title,
+		pos:           pos,
+		width:         width,
+		height:        height,
+		minval:        minval,
+		maxval:        maxval,
+		pressedColor:  pressedColor,
+		hoveredColor:  hoveredColor,
+		inactiveColor: inactiveColor,
 	}
 }
 
@@ -121,6 +128,38 @@ func createPos(x, y float32) pos {
 
 // DrawSlider draws a slider and check for interaction
 func (s *slider) DrawSlider(screen *ebiten.Image) {
+	if curspos.float_x >= s.pos.float_x+8 &&
+		curspos.float_x <= s.pos.float_x+8+s.width/50 &&
+		curspos.float_y >= s.pos.float_y+4 &&
+		curspos.float_y <= s.pos.float_y+4+(s.height-7) {
+
+		s.hovered = true
+
+		// Check if the left mouse button is pressed
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			s.pressed = true
+		} else {
+			s.pressed = false
+		}
+	} else {
+		s.hovered = false
+		s.pressed = false
+	}
+
+	// Choose color based on button state
+	var drawColor color.Color
+	if s.pressed {
+		drawColor = s.pressedColor
+	} else if s.hovered {
+		drawColor = s.hoveredColor
+	} else {
+		drawColor = s.inactiveColor
+	}
+
+	// TODO: add upscaling
+	vector.DrawFilledRect(screen, s.pos.float_x, s.pos.float_y, s.width, s.height, uidarkgray, false)
+	vector.DrawFilledRect(screen, s.pos.float_x+5, s.pos.float_y+5, s.width-10, s.height-10, uilightgray2, false)
+	vector.DrawFilledRect(screen, s.pos.float_x+8, s.pos.float_y+4, s.width/50, s.height-7, drawColor, false)
 
 }
 

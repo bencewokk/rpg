@@ -71,6 +71,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 
 		vector.DrawFilledRect(screen, 200, 25, screenWidth-250, screenHeight-50, uidarkgray, false)
+
+		testslider := createSlider("testslider", 500, 20, 5, 10, uitransparent, uilightgray, uigray, createPos(230, 80))
+		testslider.DrawSlider(screen)
+
 	case 3:
 
 		//TODO redo this comment and make this into a function
@@ -100,7 +104,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		char.DrawCharacter(screen)
 		checkMovement()
-
+		char.Dash(screen)
 		for i := 0; i < len(enemies); i++ {
 			enemies[i].Draw(screen)
 		}

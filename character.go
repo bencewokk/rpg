@@ -15,11 +15,11 @@ var char character = createCharacter("character.png", "character")
 
 // Contains all information about the character
 type character struct {
-	title       string
-	pos         pos
-	picture     *ebiten.Image
-	hp          int
-	curtiletype int
+	title   string
+	pos     pos
+	picture *ebiten.Image
+	hp      int
+	dashing bool
 }
 
 // Returns a character with the given title and path to the picture
@@ -88,10 +88,35 @@ func (c *character) Hurt(enemyPos pos) {
 	c.pos.float_x += directionX * moveAmount
 	c.pos.float_y += directionY * moveAmount
 
-	// Optional: Print the new position for debugging
-	fmt.Printf("Character moved to: (%f, %f)\n", c.pos.float_x, c.pos.float_y)
-
 	if lastTwoWays[0] != lastTwoWays[1] {
 		// You can handle any additional logic here if necessary
 	}
+}
+
+func (c *character) Dash(screen *ebiten.Image) {
+	//var dashSpeed float64 = 10.0       // Speed during dash
+	var dashDuration float64 = 0.2     // Time in seconds for the dash
+	var dashCooldown float64 = 1.0     // Time in seconds between dashes
+	var isDashing bool = false         // Whether the player is currently dashing
+	var dashTimeLeft float64 = 0.0     // Time remaining in the current dash
+	var dashCooldownTime float64 = 3.0 // Time left for cooldown
+
+	if isDashing {
+		// Apply dash movement
+		fmt.Println("test")
+		dashTimeLeft -= globalGameState.deltatime
+
+		// End dash if time is up
+		if dashTimeLeft <= 0 {
+			isDashing = false
+			dashCooldownTime = dashCooldown
+		}
+	} else if dashCooldownTime > 0 {
+		dashCooldownTime -= globalGameState.deltatime
+	} else if ebiten.IsKeyPressed(ebiten.KeyB) {
+		fmt.Println("TEST3")
+		isDashing = true
+		dashTimeLeft = dashDuration
+	}
+
 }
