@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -55,6 +56,7 @@ type slider struct {
 	pressedColor   color.RGBA
 	hoveredColor   color.RGBA
 	inactiveColor  color.RGBA
+	knobpos        pos
 }
 
 func debug() {
@@ -95,6 +97,7 @@ func createButton(title string, width, height float32, pressedColor, hoveredColo
 
 // Create a new slider
 func createSlider(title string, width, height float32, minval, maxval int, pressedColor, hoveredColor, inactiveColor color.RGBA, pos pos) slider {
+	kb := createPos(pos.float_x+8, pos.float_y+4)
 	return slider{
 		title:         title,
 		pos:           pos,
@@ -105,6 +108,7 @@ func createSlider(title string, width, height float32, minval, maxval int, press
 		pressedColor:  pressedColor,
 		hoveredColor:  hoveredColor,
 		inactiveColor: inactiveColor,
+		knobpos:       kb,
 	}
 }
 
@@ -126,17 +130,30 @@ func createPos(x, y float32) pos {
 	}
 }
 
+var on bool
+
+func inSlide(s *slider) bool {
+
+	if curspos.float_x >= s.pos.float_x+10 &&
+		curspos.float_x <= s.pos.float_x+s.width-20 {
+		return true
+	}
+
+	return false
+}
+
 // DrawSlider draws a slider and check for interaction
 func (s *slider) DrawSlider(screen *ebiten.Image) {
-	if curspos.float_x >= s.pos.float_x+8 &&
-		curspos.float_x <= s.pos.float_x+8+s.width/50 &&
-		curspos.float_y >= s.pos.float_y+4 &&
-		curspos.float_y <= s.pos.float_y+4+(s.height-7) {
+
+	if curspos.float_x >= s.knobpos.float_x &&
+		curspos.float_x <= s.knobpos.float_x+s.width/50 &&
+		curspos.float_y >= s.knobpos.float_y &&
+		curspos.float_y <= s.knobpos.float_y+(s.height-7) {
 
 		s.hovered = true
 
 		// Check if the left mouse button is pressed
-		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 			s.pressed = true
 		} else {
 			s.pressed = false
@@ -156,11 +173,16 @@ func (s *slider) DrawSlider(screen *ebiten.Image) {
 		drawColor = s.inactiveColor
 	}
 
+	if s.pressed && inSlide(s) {
+		s.knobpos.float_x = curspos.float_x - 5
+	}
+
 	// TODO: add upscaling
 	vector.DrawFilledRect(screen, s.pos.float_x, s.pos.float_y, s.width, s.height, uidarkgray, false)
 	vector.DrawFilledRect(screen, s.pos.float_x+5, s.pos.float_y+5, s.width-10, s.height-10, uilightgray2, false)
-	vector.DrawFilledRect(screen, s.pos.float_x+8, s.pos.float_y+4, s.width/50, s.height-7, drawColor, false)
+	vector.DrawFilledRect(screen, s.knobpos.float_x, s.knobpos.float_y, s.width/50, s.height-7, drawColor, false)
 
+	fmt.Println(s.pressed)
 }
 
 // DrawButton draws the button and checks for interaction

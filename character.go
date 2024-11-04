@@ -36,7 +36,7 @@ func createCharacter(path, title string) character {
 	c.hp = 100
 	c.speed = 250
 	c.dashDuration = 200
-	c.dashCooldown = 2
+	c.dashCooldown = 1
 
 	// Open the image file
 	file, err := os.Open(path)

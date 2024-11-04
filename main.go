@@ -39,6 +39,16 @@ func (g *Game) Update() error {
 	return nil
 }
 
+var (
+	// Case 0
+	playbtn    = createButton("Play", 150, 50, uitransparent, uilightgray, uigray, onearg_createPos(25))
+	optionsbtn = createButton("Options", 150, 50, uitransparent, uilightgray, uigray, createPos(25, 85))
+
+	// Case 1
+	options_exitbtn = createButton("Back to menu", 150, 50, uitransparent, uilightgray, uigray, onearg_createPos(25))
+	testslider      = createSlider("testslider", 500, 20, 5, 10, uigray, uilightgray, uigray, createPos(230, 80))
+)
+
 // Draw method of the Game
 func (g *Game) Draw(screen *ebiten.Image) {
 	debug()
@@ -52,27 +62,24 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	switch globalGameState.stateid {
 	case 0:
 
-		playbtn := createButton("Play", 150, 50, uitransparent, uilightgray, uigray, onearg_createPos(25))
 		playbtn.DrawButton(screen)
 		if playbtn.pressed {
 			globalGameState.stateid = 3
 		}
 
-		optionsbtn := createButton("Options", 150, 50, uitransparent, uilightgray, uigray, createPos(25, 85))
 		optionsbtn.DrawButton(screen)
 		if optionsbtn.pressed {
 			globalGameState.stateid = 1
 		}
+
 	case 1:
-		options_exitbtn := createButton("Back to menu", 150, 50, uitransparent, uilightgray, uigray, onearg_createPos(25))
+
 		options_exitbtn.DrawButton(screen)
 		if options_exitbtn.pressed {
 			globalGameState.stateid = 0
 		}
 
 		vector.DrawFilledRect(screen, 200, 25, screenWidth-250, screenHeight-50, uidarkgray, false)
-
-		testslider := createSlider("testslider", 500, 20, 5, 10, uitransparent, uilightgray, uigray, createPos(230, 80))
 		testslider.DrawSlider(screen)
 
 	case 3:
