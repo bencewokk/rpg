@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -19,7 +20,13 @@ type character struct {
 	pos     pos
 	picture *ebiten.Image
 	hp      int
-	dashing bool
+
+	dashing      bool
+	dashStart    time.Time
+	speed        float32
+	dashDuration float32
+	lastDash     time.Time
+	dashCooldown time.Duration
 }
 
 // Returns a character with the given title and path to the picture
@@ -27,6 +34,9 @@ func createCharacter(path, title string) character {
 	var c character
 	c.title = title
 	c.hp = 100
+	c.speed = 250
+	c.dashDuration = 200
+	c.dashCooldown = 2
 
 	// Open the image file
 	file, err := os.Open(path)
@@ -67,18 +77,15 @@ func (c *character) Hurt(enemyPos pos) {
 	c.hp -= 10
 	if c.hp <= 0 {
 		// Character is dead
-		fmt.Println("Character is dead")
 	}
 
-	fmt.Println(lastTwoWays[0])
-
 	// Calculate the direction to move away from the enemy
-	moveAmount := float32(10) // Amount to move away
+	moveAmount := float32(30) // Amount to move away
 	directionX := c.pos.float_x - enemyPos.float_x
 	directionY := c.pos.float_y - enemyPos.float_y
 
 	// Normalize the direction vector
-	length := float32(math.Sqrt(float64(directionX*directionX + directionY*directionY)))
+	length := float32(math.Sqrt(float64(directionX*directionX+directionY*directionY))) * 2.5
 	if length > 0 {
 		directionX /= length
 		directionY /= length
@@ -93,30 +100,18 @@ func (c *character) Hurt(enemyPos pos) {
 	}
 }
 
-func (c *character) Dash(screen *ebiten.Image) {
-	//var dashSpeed float64 = 10.0       // Speed during dash
-	var dashDuration float64 = 0.2     // Time in seconds for the dash
-	var dashCooldown float64 = 1.0     // Time in seconds between dashes
-	var isDashing bool = false         // Whether the player is currently dashing
-	var dashTimeLeft float64 = 0.0     // Time remaining in the current dash
-	var dashCooldownTime float64 = 3.0 // Time left for cooldown
-
-	if isDashing {
-		// Apply dash movement
-		fmt.Println("test")
-		dashTimeLeft -= globalGameState.deltatime
-
-		// End dash if time is up
-		if dashTimeLeft <= 0 {
-			isDashing = false
-			dashCooldownTime = dashCooldown
-		}
-	} else if dashCooldownTime > 0 {
-		dashCooldownTime -= globalGameState.deltatime
-	} else if ebiten.IsKeyPressed(ebiten.KeyB) {
-		fmt.Println("TEST3")
-		isDashing = true
-		dashTimeLeft = dashDuration
+func (c *character) Dash() {
+	// Check if enough time has passed since the last dash to allow dashing again (cooldown)
+	if time.Since(c.lastDash) < time.Duration(c.dashCooldown)*time.Second {
+		fmt.Println("Dash is on cooldown.")
+		return
 	}
 
+	// Start dash if it's not already active
+	if !c.dashing {
+		c.dashing = true
+		c.dashStart = time.Now()
+		c.speed = 800 // Increase speed for dash
+		fmt.Println("Started dashing")
+	}
 }

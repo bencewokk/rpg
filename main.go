@@ -18,8 +18,8 @@ func gameinit() {
 	screendivisor = screenHeight / float32(globalGameState.currentmap.height)
 	intscreendivisor = int(screenHeight) / globalGameState.currentmap.height
 
-	char.pos.float_y = 30
-	char.pos.float_x = 30
+	char.pos.float_y = 90
+	char.pos.float_x = 90
 }
 
 // Screen sizes
@@ -103,8 +103,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 
 		char.DrawCharacter(screen)
+
 		checkMovement()
-		char.Dash(screen)
+
 		for i := 0; i < len(enemies); i++ {
 			enemies[i].Draw(screen)
 		}
