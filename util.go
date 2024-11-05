@@ -57,9 +57,7 @@ type slider struct {
 	hoveredColor   color.RGBA
 	inactiveColor  color.RGBA
 	knobpos        pos
-}
-
-func debug() {
+	dragging       bool
 }
 
 // ptid calculates and returns the tile coordinates based on the given position.
@@ -142,9 +140,9 @@ func inSlide(s *slider) bool {
 	return false
 }
 
-// DrawSlider draws a slider and check for interaction
+// DrawSlider draws a slider and checks for interaction
 func (s *slider) DrawSlider(screen *ebiten.Image) {
-
+	// Check if the cursor is hovering over the knob
 	if curspos.float_x >= s.knobpos.float_x &&
 		curspos.float_x <= s.knobpos.float_x+s.width/50 &&
 		curspos.float_y >= s.knobpos.float_y &&
@@ -152,15 +150,22 @@ func (s *slider) DrawSlider(screen *ebiten.Image) {
 
 		s.hovered = true
 
-		// Check if the left mouse button is pressed
+		// Start dragging if the left mouse button is pressed and cursor is over the knob
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 			s.pressed = true
+			s.dragging = true
 		} else {
 			s.pressed = false
+			// Stop dragging when the mouse button is released
+			s.dragging = false
 		}
 	} else {
 		s.hovered = false
-		s.pressed = false
+		// If the cursor is no longer on the knob, release the drag state
+		if !ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+			s.pressed = false
+			s.dragging = false
+		}
 	}
 
 	// Choose color based on button state
@@ -173,11 +178,12 @@ func (s *slider) DrawSlider(screen *ebiten.Image) {
 		drawColor = s.inactiveColor
 	}
 
-	if s.pressed && inSlide(s) {
-		s.knobpos.float_x = curspos.float_x - 5
+	// Move the knob if it is being dragged
+	if s.dragging {
+		s.knobpos.float_x = curspos.float_x - s.width/100
 	}
 
-	// TODO: add upscaling
+	// Draw the slider track and knob
 	vector.DrawFilledRect(screen, s.pos.float_x, s.pos.float_y, s.width, s.height, uidarkgray, false)
 	vector.DrawFilledRect(screen, s.pos.float_x+5, s.pos.float_y+5, s.width-10, s.height-10, uilightgray2, false)
 	vector.DrawFilledRect(screen, s.knobpos.float_x, s.knobpos.float_y, s.width/50, s.height-7, drawColor, false)
@@ -188,7 +194,10 @@ func (s *slider) DrawSlider(screen *ebiten.Image) {
 // DrawButton draws the button and checks for interaction
 func (b *button) DrawButton(screen *ebiten.Image) {
 	// Check if the mouse is inside the button's area
-	if curspos.float_x >= b.pos.float_x && curspos.float_x <= b.pos.float_x+b.width && curspos.float_y >= b.pos.float_y && curspos.float_y <= b.pos.float_y+b.height {
+	if curspos.float_x >= b.pos.float_x &&
+		curspos.float_x <= b.pos.float_x+b.width &&
+		curspos.float_y >= b.pos.float_y &&
+		curspos.float_y <= b.pos.float_y+b.height {
 		b.hovered = true
 		// Check if the left mouse button is pressed
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {

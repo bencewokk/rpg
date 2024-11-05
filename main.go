@@ -13,7 +13,7 @@ func gameinit() {
 	ebiten.SetFullscreen(true)
 	ebiten.SetWindowTitle("rpg")
 
-	globalGameState.currentmap = createMap(36)
+	globalGameState.currentmap = createMap(72)
 
 	screendivisor = screenHeight / float32(globalGameState.currentmap.height)
 	intscreendivisor = int(screenHeight) / globalGameState.currentmap.height
@@ -51,7 +51,6 @@ var (
 
 // Draw method of the Game
 func (g *Game) Draw(screen *ebiten.Image) {
-	debug()
 
 	now := time.Now()
 	globalGameState.deltatime = now.Sub(globalGameState.lastUpdateTime).Seconds()
@@ -119,6 +118,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		ebitenutil.DebugPrint(screen, "test map")
 	}
+
+	ebiten.DrawF
 }
 
 // Layout method of the Game
