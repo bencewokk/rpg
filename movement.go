@@ -2,7 +2,6 @@ package main
 
 //
 import (
-	"fmt"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -40,15 +39,10 @@ func checkMovement() {
 	// Handle dash timing and cooldown
 	if char.dashing {
 		elapsed := time.Since(char.dashStart)
-		if elapsed < time.Duration(char.dashDuration)*time.Millisecond {
-			// Dash is ongoing
-			fmt.Println("Time since dash started:", elapsed)
-		} else {
-			// Reset dashing state and initiate cooldown
+		if elapsed > time.Duration(char.dashDuration)*time.Millisecond {
 			char.dashing = false
 			char.speed = 250           // Reset speed after dash ends
 			char.lastDash = time.Now() // Record end time for cooldown tracking
-			fmt.Println("Dash ended, cooldown started")
 		}
 	}
 

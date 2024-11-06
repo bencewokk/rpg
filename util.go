@@ -178,6 +178,8 @@ func (s *slider) DrawSlider(screen *ebiten.Image) {
 		drawColor = s.inactiveColor
 	}
 
+	//TODO check for outside
+
 	// Move the knob if it is being dragged
 	if s.dragging {
 		s.knobpos.float_x = curspos.float_x - s.width/100

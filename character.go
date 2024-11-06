@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/png"
 	"log"
 	"math"
@@ -103,7 +102,6 @@ func (c *character) Hurt(enemyPos pos) {
 func (c *character) Dash() {
 	// Check if enough time has passed since the last dash to allow dashing again (cooldown)
 	if time.Since(c.lastDash) < time.Duration(c.dashCooldown)*time.Second {
-		fmt.Println("Dash is on cooldown.")
 		return
 	}
 
@@ -112,6 +110,5 @@ func (c *character) Dash() {
 		c.dashing = true
 		c.dashStart = time.Now()
 		c.speed = 800 // Increase speed for dash
-		fmt.Println("Started dashing")
 	}
 }

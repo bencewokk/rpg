@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -13,7 +14,7 @@ func gameinit() {
 	ebiten.SetFullscreen(true)
 	ebiten.SetWindowTitle("rpg")
 
-	globalGameState.currentmap = createMap(72)
+	globalGameState.currentmap = createMap(36)
 
 	screendivisor = screenHeight / float32(globalGameState.currentmap.height)
 	intscreendivisor = int(screenHeight) / globalGameState.currentmap.height
@@ -116,10 +117,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			enemies[i].Draw(screen)
 		}
 
-		ebitenutil.DebugPrint(screen, "test map")
+		// var op *ebiten.DrawImageOptions
+		// screen.DrawImage(cutCam(screen, createPos(30, 30)), op)
+
 	}
 
-	ebiten.DrawF
+	fps := ebiten.CurrentFPS()
+	fpsText := fmt.Sprintf("FPS: %.2f", fps)
+	ebitenutil.DebugPrint(screen, fpsText)
+
 }
 
 // Layout method of the Game
