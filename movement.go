@@ -2,38 +2,173 @@ package main
 
 //
 import (
+	"fmt"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-var (
-	lastTwoWays [2]int
-)
+// 0 up, 1 down, 2 right, 3 left
+func checkNextTile(way int) bool {
+
+	//camera := globalGameState.camera
+
+	charx := (char.pos.float_x)
+	chary := (char.pos.float_y)
+
+	//top left corner
+	topleftx, toplefty := charx, chary
+	topleftpos := createPos(topleftx, toplefty)
+
+	//top right corner
+	toprightx, toprighty := (charx + screendivisor), chary
+	toprightpos := createPos(toprightx, toprighty)
+
+	// //bottom left corner
+	bottomleftx, bottomlefty := charx, (chary + screendivisor)
+	bottomleftpos := createPos(bottomleftx, bottomlefty)
+
+	// //bottom right corner
+	bottomrightx, bottomrighty := (charx + screendivisor), (chary + screendivisor)
+	bottomrightpos := createPos(bottomrightx, bottomrighty)
+
+	var x, y int
+
+	var offsetx, offsety int = 31, 17
+	switch way {
+	//up
+	case 0:
+		topleftpos.float_y -= 1
+		toprightpos.float_y -= 1
+
+		x, y = ptid(topleftpos)
+		x += offsetx
+		y += offsety
+		fmt.Println(x, y)
+		if globalGameState.currentmap.data[y][x] == 1 {
+			return false
+		}
+
+		x, y = ptid(toprightpos)
+		x += offsetx
+		y += offsety
+		fmt.Println(x, y)
+		if globalGameState.currentmap.data[y][x] == 1 {
+			return false
+		}
+
+		return true
+	//down
+	case 1:
+		bottomrightpos.float_y += 1
+		bottomleftpos.float_y += 1
+
+		x, y = ptid(bottomleftpos)
+		x += offsetx
+		y += offsety
+		fmt.Println(x, y)
+		if globalGameState.currentmap.data[y][x] == 1 {
+			return false
+		}
+
+		x, y = ptid(bottomrightpos)
+		x += offsetx
+		y += offsety
+		fmt.Println(x, y)
+		if globalGameState.currentmap.data[y][x] == 1 {
+			return false
+		}
+
+		return true
+
+	//right
+	case 2:
+		bottomrightpos.float_x += 1
+		toprightpos.float_x += 1
+
+		x, y = ptid(bottomrightpos)
+		x += offsetx
+		y += offsety
+		fmt.Println(x, y)
+		if globalGameState.currentmap.data[y][x] == 1 {
+			return false
+		}
+
+		x, y = ptid(toprightpos)
+		x += offsetx
+		y += offsety
+		fmt.Println(x, y)
+		if globalGameState.currentmap.data[y][x] == 1 {
+			return false
+		}
+
+		return true
+
+	//left
+	case 3:
+		topleftpos.float_x -= 1
+		bottomleftpos.float_x -= 1
+
+		x, y = ptid(topleftpos)
+		x += offsetx
+		y += offsety
+		fmt.Println(x, y)
+		if globalGameState.currentmap.data[y][x] == 1 {
+			return false
+		}
+
+		x, y = ptid(bottomleftpos)
+		x += offsetx
+		y += offsety
+		fmt.Println(x, y)
+		if globalGameState.currentmap.data[y][x] == 1 {
+			return false
+		}
+
+		return true
+	}
+	return false
+}
+
+// 0 up, 1 down, 2 right, 3 left
+func checkCollision(first, second pos) bool {
+
+	// Calculate the bounding box for `first`
+	firstMinX, firstMinY := first.float_x, first.float_y
+	firstMaxX, firstMaxY := first.float_x+screendivisor, first.float_y+screendivisor
+
+	// Calculate the bounding box for `second`
+	secondMinX, secondMinY := second.float_x, second.float_y
+	secondMaxX, secondMaxY := second.float_x+screendivisor, second.float_y+screendivisor
+
+	// Check for overlap on both axes
+	if firstMaxX > secondMinX && firstMinX < secondMaxX &&
+		firstMaxY > secondMinY && firstMinY < secondMaxY {
+		return true // Collision detected
+	}
+
+	return false // No collision
+}
 
 func checkMovement() {
 	// Log current character position (for debugging)
-	ptid(char.pos)
+	fmt.Println(ptid(char.pos))
 
 	// Handle movement based on key presses and check next tile for collisions
 	if ebiten.IsKeyPressed(ebiten.KeyD) && checkNextTile(2) { // Move right
 		char.pos.float_x += char.speed * float32(globalGameState.deltatime)
-		updateLastTwoWays(2)
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) && checkNextTile(3) { // Move left
 		char.pos.float_x -= char.speed * float32(globalGameState.deltatime)
-		updateLastTwoWays(3)
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyW) && checkNextTile(0) { // Move up
 		char.pos.float_y -= char.speed * float32(globalGameState.deltatime)
-		updateLastTwoWays(0)
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyS) && checkNextTile(1) { // Move down
 		char.pos.float_y += char.speed * float32(globalGameState.deltatime)
-		updateLastTwoWays(1)
 	}
 
 	// Handle dash timing and cooldown
@@ -41,7 +176,7 @@ func checkMovement() {
 		elapsed := time.Since(char.dashStart)
 		if elapsed > time.Duration(char.dashDuration)*time.Millisecond {
 			char.dashing = false
-			char.speed = 250           // Reset speed after dash ends
+			char.speed = 360           // Reset speed after dash ends
 			char.lastDash = time.Now() // Record end time for cooldown tracking
 		}
 	}
@@ -58,10 +193,4 @@ func checkMovement() {
 		}
 	}
 
-}
-
-// updateLastTwoWays updates the last two directions the character moved
-func updateLastTwoWays(direction int) {
-	lastTwoWays[1] = lastTwoWays[0]
-	lastTwoWays[0] = direction
 }

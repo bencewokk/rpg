@@ -56,17 +56,19 @@ func createCharacter(path, title string) character {
 	return c
 }
 
-// DrawCharacter draws the character
+// DrawCharacter draws the character centered on the screen
 func (c character) DrawCharacter(screen *ebiten.Image) {
-
 	op := &ebiten.DrawImageOptions{}
 
 	originalWidth, originalHeight := c.picture.Size()
-	scaleX := float64(screendivisor) / float64(originalWidth)
-	scaleY := float64(screendivisor) / float64(originalHeight)
+	scaleX := float64(screendivisor) / float64(originalWidth) * float64(globalGameState.camera.zoom)
+	scaleY := float64(screendivisor) / float64(originalHeight) * float64(globalGameState.camera.zoom)
 	op.GeoM.Scale(scaleX, scaleY)
 
-	op.GeoM.Translate(float64(c.pos.float_x), float64(c.pos.float_y))
+	// Calculate the centered position based on screen dimensions and zoom level
+	centerX := (float64(screenWidth) / 2) - (float64(originalWidth) * scaleX / 2)
+	centerY := (float64(screenHeight) / 2) - (float64(originalHeight) * scaleY / 2)
+	op.GeoM.Translate(centerX, centerY)
 
 	screen.DrawImage(c.picture, op)
 }
@@ -93,10 +95,6 @@ func (c *character) Hurt(enemyPos pos) {
 	// Move the character away from the enemy
 	c.pos.float_x += directionX * moveAmount
 	c.pos.float_y += directionY * moveAmount
-
-	if lastTwoWays[0] != lastTwoWays[1] {
-		// You can handle any additional logic here if necessary
-	}
 }
 
 func (c *character) Dash() {

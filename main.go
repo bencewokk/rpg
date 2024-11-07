@@ -21,6 +21,9 @@ func gameinit() {
 
 	char.pos.float_y = 90
 	char.pos.float_x = 90
+
+	globalGameState.camera.zoom = 1
+
 }
 
 // Screen sizes
@@ -86,6 +89,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	case 3:
 
+		updateCamera()
+
 		//TODO redo this comment and make this into a function
 		for i := 0; i < globalGameState.currentmap.height; i++ {
 			for j := 0; j < globalGameState.currentmap.width; j++ {
@@ -101,14 +106,22 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				}
 				vector.DrawFilledRect(
 					screen,
-					(float32(j*intscreendivisor)+camera.pos.float_x)*2,
-					(float32(i*intscreendivisor)+camera.pos.float_y)*2,
+					(float32(j*intscreendivisor)+camera.pos.float_x)*camera.zoom,
+					(float32(i*intscreendivisor)+camera.pos.float_y)*camera.zoom,
 					screendivisor*2,
 					screendivisor*2,
 					currenttilecolor,
 					false,
 				)
+
+				posX := (float32(j*int(screendivisor)) + camera.pos.float_x) * camera.zoom
+				posY := (float32(i*int(screendivisor)) + camera.pos.float_y) * camera.zoom
+
+				//var a string = strconv.Itoa(j) + " " + strconv.Itoa(i)
+
+				ebitenutil.DebugPrintAt(screen, "K", int(posX), int(posY))
 			}
+
 		}
 
 		char.DrawCharacter(screen)

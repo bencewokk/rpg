@@ -46,6 +46,10 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 - Added sliders to util package
 - Started working on adding dashing 
 
+#### 2024.11.07 - version 0.0.9
+- Started working on camera tracking
+
+
 ## TODO
 
 ### Important

@@ -2,8 +2,6 @@ package main
 
 import (
 	"time"
-
-	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type gamemap struct {
@@ -50,13 +48,13 @@ type gamestate struct {
 	// date of last update
 	lastUpdateTime time.Time
 
-	// all of the game that doesnt get rendered
-	//
-	// should be cut before rendering with cutCam()
-	unrenderedMap *ebiten.Image
-
 	// contains the camere positions
 	//
 	// this is used in the rendering, it offsets the drawing positions
 	camera camera
+}
+
+func updateCamera() {
+	globalGameState.camera.pos.float_x = char.pos.float_x * -1
+	globalGameState.camera.pos.float_y = char.pos.float_y * -1
 }

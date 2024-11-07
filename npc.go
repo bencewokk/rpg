@@ -49,8 +49,8 @@ func (e enemy) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 
 	originalWidth, originalHeight := e.picture.Size()
-	scaleX := float64(screendivisor) / float64(originalWidth)
-	scaleY := float64(screendivisor) / float64(originalHeight)
+	scaleX := float64(screendivisor) / float64(originalWidth) * float64(globalGameState.camera.zoom)
+	scaleY := float64(screendivisor) / float64(originalHeight) * float64(globalGameState.camera.zoom)
 	op.GeoM.Scale(scaleX, scaleY)
 
 	op.GeoM.Translate(float64(e.pos.float_x), float64(e.pos.float_y))
@@ -60,9 +60,9 @@ func (e enemy) Draw(screen *ebiten.Image) {
 
 func init() {
 	enemies = append(enemies, createEnemy("enemy.png", "Enemy 1"))
-	enemies[0].pos = createPos(60, 60)
+	enemies[0].pos = createPos(60*globalGameState.camera.zoom, 60*globalGameState.camera.zoom)
 	enemies = append(enemies, createEnemy("enemy.png", "Enemy 2"))
-	enemies[1].pos = createPos(120, 90)
+	enemies[1].pos = createPos(120*globalGameState.camera.zoom, 90*globalGameState.camera.zoom)
 	enemies = append(enemies, createEnemy("enemy.png", "Enemy 3"))
-	enemies[2].pos = createPos(60, 270)
+	enemies[2].pos = createPos(60*globalGameState.camera.zoom, 270*globalGameState.camera.zoom)
 }
