@@ -19,6 +19,14 @@ type gamemap struct {
 	width  int
 }
 
+// read more in gamestate
+type camera struct {
+	pos pos
+
+	//used in rendering and collision checking
+	zoom float32
+}
+
 // contains all global information about the game
 var globalGameState gamestate
 
@@ -31,7 +39,7 @@ type gamestate struct {
 
 	// maps are stored in arrays (see in type map)
 	//
-	//  this is the current map that is  being used//while rendered map array size is constant to 144 (16*9) currentmapid is not
+	// this is the current map that is  being used//while rendered map array size is constant to 144 (16*9) currentmapid is not
 	currentmap gamemap
 
 	// counts the time since start of game
@@ -46,4 +54,9 @@ type gamestate struct {
 	//
 	// should be cut before rendering with cutCam()
 	unrenderedMap *ebiten.Image
+
+	// contains the camere positions
+	//
+	// this is used in the rendering, it offsets the drawing positions
+	camera camera
 }

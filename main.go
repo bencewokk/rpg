@@ -53,6 +53,8 @@ var (
 // Draw method of the Game
 func (g *Game) Draw(screen *ebiten.Image) {
 
+	camera := globalGameState.camera
+
 	now := time.Now()
 	globalGameState.deltatime = now.Sub(globalGameState.lastUpdateTime).Seconds()
 	globalGameState.lastUpdateTime = now
@@ -99,10 +101,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				}
 				vector.DrawFilledRect(
 					screen,
-					float32(j*intscreendivisor),
-					float32(i*intscreendivisor),
-					screendivisor,
-					screendivisor,
+					(float32(j*intscreendivisor)+camera.pos.float_x)*2,
+					(float32(i*intscreendivisor)+camera.pos.float_y)*2,
+					screendivisor*2,
+					screendivisor*2,
 					currenttilecolor,
 					false,
 				)
@@ -110,7 +112,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 
 		char.DrawCharacter(screen)
-
 		checkMovement()
 
 		for i := 0; i < len(enemies); i++ {

@@ -30,7 +30,6 @@ var (
 
 // Standard positioning used for everything
 type pos struct {
-	int_x, int_y     int
 	float_x, float_y float32
 }
 
@@ -77,7 +76,6 @@ func (cursor *pos) updatemouse() {
 	// Get the mouse position
 	intmx, intmy := ebiten.CursorPosition()
 	curspos.float_x, curspos.float_y = float32(intmx), float32(intmy)
-	curspos.int_x, curspos.int_y = intmx, intmy
 }
 
 // Create a new button
@@ -112,8 +110,6 @@ func createSlider(title string, width, height float32, minval, maxval int, press
 
 func onearg_createPos(u float32) pos {
 	return pos{
-		int_x:   int(u),
-		int_y:   int(u),
 		float_x: u,
 		float_y: u,
 	}
@@ -121,8 +117,6 @@ func onearg_createPos(u float32) pos {
 
 func createPos(x, y float32) pos {
 	return pos{
-		int_x:   int(x),
-		int_y:   int(y),
 		float_x: x,
 		float_y: y,
 	}
@@ -226,7 +220,7 @@ func (b *button) DrawButton(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen, b.pos.float_x, b.pos.float_y, float32(b.width), float32(b.height), drawColor, false)
 
 	// Draw the button title as text
-	ebitenutil.DebugPrintAt(screen, b.title, b.pos.int_x+10, b.pos.int_y+10)
+	ebitenutil.DebugPrintAt(screen, b.title, int(b.pos.float_x+10), int(b.pos.float_y+10))
 }
 
 var lastWay int
