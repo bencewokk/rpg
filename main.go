@@ -106,16 +106,16 @@ func (g *Game) Draw(screen *ebiten.Image) {
 				}
 				vector.DrawFilledRect(
 					screen,
-					(float32(j*intscreendivisor)+camera.pos.float_x)*camera.zoom,
-					(float32(i*intscreendivisor)+camera.pos.float_y)*camera.zoom,
+					(float32(j*intscreendivisor-intscreendivisor/2)+camera.pos.float_x)*camera.zoom+screenWidth/2,
+					(float32(i*intscreendivisor-intscreendivisor/2)+camera.pos.float_y)*camera.zoom+screenHeight/2,
 					screendivisor*2,
 					screendivisor*2,
 					currenttilecolor,
 					false,
 				)
 
-				posX := (float32(j*int(screendivisor)) + camera.pos.float_x) * camera.zoom
-				posY := (float32(i*int(screendivisor)) + camera.pos.float_y) * camera.zoom
+				posX := (float32(j*intscreendivisor-intscreendivisor/2)+camera.pos.float_x)*camera.zoom + screenWidth/2
+				posY := (float32(i*intscreendivisor-intscreendivisor/2)+camera.pos.float_y)*camera.zoom + screenHeight/2
 
 				//var a string = strconv.Itoa(j) + " " + strconv.Itoa(i)
 

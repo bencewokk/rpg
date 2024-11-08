@@ -53,7 +53,7 @@ func (e enemy) Draw(screen *ebiten.Image) {
 	scaleY := float64(screendivisor) / float64(originalHeight) * float64(globalGameState.camera.zoom)
 	op.GeoM.Scale(scaleX, scaleY)
 
-	op.GeoM.Translate(float64(e.pos.float_x), float64(e.pos.float_y))
+	op.GeoM.Translate(float64(e.pos.float_x)+float64(globalGameState.camera.pos.float_x)/2, float64(e.pos.float_y)+float64(globalGameState.camera.pos.float_y)/2)
 
 	screen.DrawImage(e.picture, op)
 }

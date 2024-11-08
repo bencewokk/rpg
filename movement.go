@@ -2,7 +2,6 @@ package main
 
 //
 import (
-	"fmt"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -15,6 +14,7 @@ func checkNextTile(way int) bool {
 
 	charx := (char.pos.float_x)
 	chary := (char.pos.float_y)
+	screendivisor /= globalGameState.camera.zoom
 
 	//top left corner
 	topleftx, toplefty := charx, chary
@@ -33,26 +33,18 @@ func checkNextTile(way int) bool {
 	bottomrightpos := createPos(bottomrightx, bottomrighty)
 
 	var x, y int
-
-	var offsetx, offsety int = 31, 17
 	switch way {
 	//up
 	case 0:
-		topleftpos.float_y -= 1
-		toprightpos.float_y -= 1
+		topleftpos.float_y -= 3
+		toprightpos.float_y -= 3
 
 		x, y = ptid(topleftpos)
-		x += offsetx
-		y += offsety
-		fmt.Println(x, y)
 		if globalGameState.currentmap.data[y][x] == 1 {
 			return false
 		}
 
 		x, y = ptid(toprightpos)
-		x += offsetx
-		y += offsety
-		fmt.Println(x, y)
 		if globalGameState.currentmap.data[y][x] == 1 {
 			return false
 		}
@@ -60,21 +52,15 @@ func checkNextTile(way int) bool {
 		return true
 	//down
 	case 1:
-		bottomrightpos.float_y += 1
-		bottomleftpos.float_y += 1
+		bottomrightpos.float_y += 3
+		bottomleftpos.float_y += 3
 
 		x, y = ptid(bottomleftpos)
-		x += offsetx
-		y += offsety
-		fmt.Println(x, y)
 		if globalGameState.currentmap.data[y][x] == 1 {
 			return false
 		}
 
 		x, y = ptid(bottomrightpos)
-		x += offsetx
-		y += offsety
-		fmt.Println(x, y)
 		if globalGameState.currentmap.data[y][x] == 1 {
 			return false
 		}
@@ -83,21 +69,15 @@ func checkNextTile(way int) bool {
 
 	//right
 	case 2:
-		bottomrightpos.float_x += 1
-		toprightpos.float_x += 1
+		bottomrightpos.float_x += 3
+		toprightpos.float_x += 3
 
 		x, y = ptid(bottomrightpos)
-		x += offsetx
-		y += offsety
-		fmt.Println(x, y)
 		if globalGameState.currentmap.data[y][x] == 1 {
 			return false
 		}
 
 		x, y = ptid(toprightpos)
-		x += offsetx
-		y += offsety
-		fmt.Println(x, y)
 		if globalGameState.currentmap.data[y][x] == 1 {
 			return false
 		}
@@ -106,21 +86,15 @@ func checkNextTile(way int) bool {
 
 	//left
 	case 3:
-		topleftpos.float_x -= 1
-		bottomleftpos.float_x -= 1
+		topleftpos.float_x -= 3
+		bottomleftpos.float_x -= 3
 
 		x, y = ptid(topleftpos)
-		x += offsetx
-		y += offsety
-		fmt.Println(x, y)
 		if globalGameState.currentmap.data[y][x] == 1 {
 			return false
 		}
 
 		x, y = ptid(bottomleftpos)
-		x += offsetx
-		y += offsety
-		fmt.Println(x, y)
 		if globalGameState.currentmap.data[y][x] == 1 {
 			return false
 		}
@@ -151,8 +125,6 @@ func checkCollision(first, second pos) bool {
 }
 
 func checkMovement() {
-	// Log current character position (for debugging)
-	fmt.Println(ptid(char.pos))
 
 	// Handle movement based on key presses and check next tile for collisions
 	if ebiten.IsKeyPressed(ebiten.KeyD) && checkNextTile(2) { // Move right
