@@ -2,7 +2,7 @@
 
 ## Description
 
-This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game engine for Go. The game is still in its early stages, with basic setup, character movement, and a procedurally generated map. 
+This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game engine for Go. The game is still in its early stages. 
 
 ## Logs
 
@@ -71,13 +71,3 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 - [ ] Add upscaling for sliders in util package
 - [ ] Add function for handling animations
 
-## Ideas for Future Development
-
-- Introduce unique stats for different tile types to create more strategic gameplay elements.
-- Better movement such as dashing or jumping
-
-### Notes
-
-## Adding animations
-
-You should generally add a new function to a struct if you are planning on adding an animation

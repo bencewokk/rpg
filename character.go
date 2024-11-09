@@ -32,7 +32,7 @@ type character struct {
 func createCharacter(path, title string) character {
 	var c character
 	c.title = title
-	c.hp = 100
+	c.hp = 1000
 	c.speed = 250
 	c.dashDuration = 200
 	c.dashCooldown = 1
@@ -73,11 +73,18 @@ func (c character) DrawCharacter(screen *ebiten.Image) {
 	screen.DrawImage(c.picture, op)
 }
 
+func (c *character) Die() {
+	char.pos.float_y = screenHeight / 2
+	char.pos.float_x = screenWidth / 2
+
+	char.hp = 1000
+}
+
 // Assuming 'enemy' is of type 'character' or has a position that you can access
 func (c *character) Hurt(enemyPos pos) {
 	c.hp -= 10
 	if c.hp <= 0 {
-		// Character is dead
+		c.Die()
 	}
 
 	// Calculate the direction to move away from the enemy

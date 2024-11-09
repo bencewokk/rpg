@@ -19,8 +19,8 @@ func gameinit() {
 	screendivisor = screenHeight / float32(globalGameState.currentmap.height)
 	intscreendivisor = int(screenHeight) / globalGameState.currentmap.height
 
-	char.pos.float_y = 90
-	char.pos.float_x = 90
+	char.pos.float_y = screenHeight / 2
+	char.pos.float_x = screenWidth / 2
 
 	globalGameState.camera.zoom = 1
 
@@ -114,12 +114,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					false,
 				)
 
-				posX := (float32(j*intscreendivisor-intscreendivisor/2)+camera.pos.float_x)*camera.zoom + screenWidth/2
-				posY := (float32(i*intscreendivisor-intscreendivisor/2)+camera.pos.float_y)*camera.zoom + screenHeight/2
+				// posX := (float32(j*intscreendivisor-intscreendivisor/2)+camera.pos.float_x)*camera.zoom + screenWidth/2
+				// posY := (float32(i*intscreendivisor-intscreendivisor/2)+camera.pos.float_y)*camera.zoom + screenHeight/2
 
-				//var a string = strconv.Itoa(j) + " " + strconv.Itoa(i)
+				// var a string = strconv.Itoa(j) + " " + strconv.Itoa(i)
 
-				ebitenutil.DebugPrintAt(screen, "K", int(posX), int(posY))
+				// ebitenutil.DebugPrintAt(screen, "K", int(posX), int(posY))
 			}
 
 		}
@@ -134,6 +134,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		// var op *ebiten.DrawImageOptions
 		// screen.DrawImage(cutCam(screen, createPos(30, 30)), op)
 
+		drawUi(screen)
 	}
 
 	fps := ebiten.CurrentFPS()

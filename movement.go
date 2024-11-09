@@ -158,10 +158,15 @@ func checkMovement() {
 		char.Dash()
 	}
 
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButton0) {
+		//fmt.Println("attacking")
+	}
+
 	// Check for collisions with enemies
 	for i := range enemies {
 		if checkCollision(char.pos, enemies[i].pos) {
 			char.Hurt(enemies[i].pos)
+			enemies[i].Hurt(char.pos)
 		}
 	}
 
