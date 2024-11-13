@@ -27,14 +27,29 @@ func newBar(x, y, width, height float32, color color.Color, maxValue float32) ba
 	}
 }
 
-var a float32
+var secondaryBar float32 = 600
+
+func fillBar() {
+	for secondaryBar < 600 {
+		secondaryBar += 1.5
+		time.Sleep(5 * time.Millisecond)
+
+	}
+
+	secondaryBar = 600
+	char.barFilling = false
+}
 
 func drawUi(s *ebiten.Image) {
 
-	if a/0.29354207436 < 300 {
-
-		a = float32(time.Since(char.dashStart).Milliseconds())
+	if !char.dashing && !char.barFilling {
+		char.barFilling = true
+		go fillBar()
 	}
-	vector.DrawFilledRect(s, 60, screenHeight-30, 300, 20, uidarkgray, false)
-	vector.DrawFilledRect(s, 60, screenHeight-30, float32(a), 20, mlightgreen, false)
+
+	if char.dashing {
+		secondaryBar = 0
+	}
+	vector.DrawFilledRect(s, 60, screenHeight-30, 600, 20, uidarkred, false)
+	vector.DrawFilledRect(s, 60, screenHeight-30, secondaryBar, 20, uilightred, false)
 }

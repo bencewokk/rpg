@@ -83,6 +83,7 @@ type character struct {
 	dashDuration float32
 	lastDash     time.Time
 	dashCooldown time.Duration
+	barFilling   bool
 
 	currentAnimationState_primary int // use this to index allAnimation []EbitenImage
 	// Load all animations
@@ -110,7 +111,7 @@ func createCharacter(title string) character {
 	c.hp = 1000
 	c.speed = 150
 	c.dashDuration = 500
-	c.dashCooldown = 1
+	c.dashCooldown = 2
 
 	// Initialize the animation arrays to avoid index out of range
 	// Initialize the first animation (idle)

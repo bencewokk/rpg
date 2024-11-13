@@ -127,18 +127,14 @@ func checkZoom() {
 	_, my := ebiten.Wheel()
 
 	if my < 0 && globalGameState.camera.zoom < 2.5 {
-		for i := 0.0; i < 0.4; {
-			time.Sleep(4 * time.Millisecond)
-			globalGameState.camera.zoom += 0.002
-			i += 0.01
-		}
-	} else if my > 0 && globalGameState.camera.zoom > 0.5 {
-		//globalGameState.camera.zoom -= 0.03
-
-		for i := 0.0; i < 0.4; {
+		for i := 0; i < 4 && globalGameState.camera.zoom > 0.5; i++ {
 			time.Sleep(4 * time.Millisecond)
 			globalGameState.camera.zoom -= 0.002
-			i += 0.01
+		}
+	} else if my > 0 && globalGameState.camera.zoom > 0.5 {
+		for i := 0; i < 4 && globalGameState.camera.zoom < 2.5; i++ {
+			time.Sleep(4 * time.Millisecond)
+			globalGameState.camera.zoom += 0.002
 		}
 	}
 }

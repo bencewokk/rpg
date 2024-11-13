@@ -16,6 +16,8 @@ var (
 	uilightgray   = color.RGBA{158, 158, 158, 255}
 	uilightgray2  = color.RGBA{190, 190, 190, 255}
 	uitransparent = color.RGBA{0, 0, 0, 0}
+	uilightred    = color.RGBA{190, 75, 71, 255}
+	uidarkred     = color.RGBA{129, 0, 0, 255}
 )
 
 // Color variable for map rendering
