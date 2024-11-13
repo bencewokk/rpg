@@ -59,6 +59,8 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 - Added tilemap textures
 - Added animations for character 
 - Started working on texture handling
+
+#### 2024.11.13 - version 0.1.2
 - Finished dashing-ui
 - Fixed zooming
 
