@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -184,7 +183,6 @@ func (s *slider) DrawSlider(screen *ebiten.Image) {
 	vector.DrawFilledRect(screen, s.pos.float_x+5, s.pos.float_y+5, s.width-10, s.height-10, uilightgray2, false)
 	vector.DrawFilledRect(screen, s.knobpos.float_x, s.knobpos.float_y, s.width/50, s.height-7, drawColor, false)
 
-	fmt.Println(s.pressed)
 }
 
 // DrawButton draws the button and checks for interaction

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"time"
 
@@ -32,7 +31,6 @@ var a float32
 
 func drawUi(s *ebiten.Image) {
 
-	fmt.Println(a)
 	if a/0.29354207436 < 300 {
 
 		a = float32(time.Since(char.dashStart).Milliseconds())

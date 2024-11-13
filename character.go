@@ -10,33 +10,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-// Global variable for player
-var char character = createCharacter("character.png", "character")
-
-// Contains all information about the character
-type character struct {
-	title   string
-	pos     pos
-	picture *ebiten.Image
-	hp      int
-
-	dashing      bool
-	dashStart    time.Time
-	speed        float32
-	dashDuration float32
-	lastDash     time.Time
-	dashCooldown time.Duration
-}
-
-// Returns a character with the given title and path to the picture
-func createCharacter(path, title string) character {
-	var c character
-	c.title = title
-	c.hp = 1000
-	c.speed = 250
-	c.dashDuration = 200
-	c.dashCooldown = 1
-
+func loadPNG(path string) *ebiten.Image {
 	// Open the image file
 	file, err := os.Open(path)
 	if err != nil {
@@ -51,9 +25,83 @@ func createCharacter(path, title string) character {
 	}
 
 	// Convert the image.Image to an *ebiten.Image
-	c.picture = ebiten.NewImageFromImage(imgData)
+	return ebiten.NewImageFromImage(imgData)
+}
+
+// Global variable for player
+var char character = createCharacter("character")
+
+// Load all animations
+func load() {
+
+	char.allAnimations[0] = append(char.allAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle.png"))
+	char.allAnimations[0] = append(char.allAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S2.png"))
+	char.allAnimations[0] = append(char.allAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S3.png"))
+	char.allAnimations[0] = append(char.allAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S4.png"))
+	char.allAnimations[0] = append(char.allAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S5.png"))
+	char.allAnimations[0] = append(char.allAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S6.png"))
+
+	char.allAnimations[2] = append(char.allAnimations[2], loadPNG("import/Characters/Character/Front_C_Running.png"))
+	char.allAnimations[2] = append(char.allAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S2.png"))
+	char.allAnimations[2] = append(char.allAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S3.png"))
+	char.allAnimations[2] = append(char.allAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S4.png"))
+	char.allAnimations[2] = append(char.allAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S5.png"))
+	char.allAnimations[2] = append(char.allAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S6.png"))
+}
+
+// Contains all information about the character
+type character struct {
+	title   string
+	pos     pos
+	picture *ebiten.Image
+	hp      int
+
+	dashing      bool
+	dashStart    time.Time
+	speed        float32
+	dashDuration float32
+	lastDash     time.Time
+	dashCooldown time.Duration
+
+	// 1 idle
+	currentAnimationState int // use this to index allAnimation []EbitenImage
+	allAnimations         [6][]*ebiten.Image
+}
+
+// Returns a character with the given title and path to the picture
+func createCharacter(title string) character {
+	var c character
+	c.title = title
+	c.hp = 1000
+	c.speed = 250
+	c.dashDuration = 200
+	c.dashCooldown = 1
+
+	// Initialize the animation arrays to avoid index out of range
+	// Initialize the first animation (idle)
+	c.allAnimations[0] = make([]*ebiten.Image, 0)
+
+	// Set the first picture (make sure this is loaded first)
+	if len(c.allAnimations[0]) > 0 {
+		c.picture = c.allAnimations[0][c.currentAnimationState]
+	} else {
+		// Set a default image if no animations are loaded
+		c.picture = loadPNG("import/Characters/Character/Front_C_Idle.png")
+	}
 
 	return c
+}
+
+var animationTimer float64
+
+// Updates animation on global character
+func updateAnimationCharacter() {
+	animationTimer += globalGameState.deltatime
+	if animationTimer >= 0.1 {
+		char.currentAnimationState = (char.currentAnimationState + 1) % 6
+		char.picture = char.allAnimations[2][char.currentAnimationState]
+		animationTimer = 0.0
+	}
 }
 
 // DrawCharacter draws the character centered on the screen

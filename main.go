@@ -11,6 +11,9 @@ import (
 )
 
 func gameinit() {
+
+	load()
+
 	ebiten.SetFullscreen(true)
 	ebiten.SetWindowTitle("rpg")
 
@@ -126,6 +129,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		char.DrawCharacter(screen)
 		checkMovement()
+		updateAnimationCharacter()
 
 		for i := 0; i < len(enemies); i++ {
 			enemies[i].Draw(screen)

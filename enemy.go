@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image"
 	"image/png"
 	"log"
 	"math"
@@ -48,22 +49,30 @@ func createEnemy(path, title string, id int) enemy {
 	return e
 }
 
-// Draw the enemies
 func (e enemy) Draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	camera := globalGameState.camera.pos
 
+	// Set up scaling
 	originalWidth, originalHeight := e.picture.Size()
 	scaleX := float64(screendivisor) / float64(originalWidth)
 	scaleY := float64(screendivisor) / float64(originalHeight)
 	op.GeoM.Scale(scaleX, scaleY)
 
+	// Positioning with respect to camera
 	op.GeoM.Translate(
 		float64(e.pos.float_x+screenWidth/2+camera.float_x)-float64(intscreendivisor)/2,
 		float64(e.pos.float_y+screenHeight/2+camera.float_y)-float64(intscreendivisor)/2,
 	)
 
-	screen.DrawImage(e.picture, op)
+	// Define a dynamic rectangle to select a portion of the image
+	// Adjust (x0, y0, x1, y1) as needed to control the area drawn
+	x0, y0 := 0, 0
+	x1, y1 := 10, 10 // These values could change based on the enemy's position, animation frame, etc.
+	tile := ebiten.NewImageFromImage(e.picture.SubImage(image.Rect(x0, y0, x1, y1)))
+
+	// Draw the selected portion of the image onto the screen
+	screen.DrawImage(tile, op)
 }
 
 func (e *enemy) Die() {
@@ -97,11 +106,11 @@ func (e *enemy) Hurt(enemyPos pos) {
 	e.pos.float_y += directionY * moveAmount
 }
 
-func init() {
-	enemies = append(enemies, createEnemy("enemy.png", "Enemy 1", 0))
-	enemies[0].pos = createPos(60, 60)
-	enemies = append(enemies, createEnemy("enemy.png", "Enemy 2", 1))
-	enemies[1].pos = createPos(120, 90)
-	enemies = append(enemies, createEnemy("enemy.png", "Enemy 3", 2))
-	enemies[2].pos = createPos(60, 270)
-}
+// func init() {
+// 	enemies = append(enemies, createEnemy("enemy.png", "Enemy 1", 0))
+// 	enemies[0].pos = createPos(60, 60)
+// 	enemies = append(enemies, createEnemy("enemy.png", "Enemy 2", 1))
+// 	enemies[1].pos = createPos(120, 90)
+// 	enemies = append(enemies, createEnemy("enemy.png", "Enemy 3", 2))
+// 	enemies[2].pos = createPos(60, 270)
+// }
