@@ -49,29 +49,7 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 #### 2024.11.07 - version 0.0.9
 - Added camerea tracking
 
-#### 
-- Added tilemap 
+#### 2024.11.13 - version 0.0.10
+- Added tilemap textures
+- Added animations for character 
 - Started working on texture handling
-
-
-## TODO
-
-### Important
-- [x] Add a test map.
-- [x] Add a test character.
-- [x] Decide on rendered map usage.
-- [ ] Improve map creation.
-- [ ] Implement basic gameplay.
-  - [ ] Add hp to enemies 
-- [x] Add delta time for movement since right now it is based on the framerate
-- [ ] Fix bug related to moving trough close spaces
-- [ ] Add texture handling
-- [ ] Add ui bar 
-
-### Unimportant
-- [x] Split code into separate files.
-- [x] Move README content to `README.md`.
-- [ ] Add textures and replace placeholder sprites
-- [ ] Add upscaling for sliders in util package
-- [ ] Add function for handling animations
-

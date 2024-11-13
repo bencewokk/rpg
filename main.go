@@ -25,7 +25,7 @@ func gameinit() {
 	char.pos.float_y = screenHeight / 2
 	char.pos.float_x = screenWidth / 2
 
-	globalGameState.camera.zoom = 1
+	globalGameState.camera.zoom = 2
 
 }
 
@@ -128,7 +128,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 
 		char.DrawCharacter(screen)
-		checkMovement()
+		checkMovementAndInput()
 		updateAnimationCharacter()
 
 		for i := 0; i < len(enemies); i++ {

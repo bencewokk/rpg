@@ -14,7 +14,6 @@ func checkNextTile(way int) bool {
 
 	charx := (char.pos.float_x)
 	chary := (char.pos.float_y)
-	screendivisor /= globalGameState.camera.zoom
 
 	//top left corner
 	topleftx, toplefty := charx, chary
@@ -124,23 +123,29 @@ func checkCollision(first, second pos) bool {
 	return false // No collision
 }
 
-func checkMovement() {
+func checkMovementAndInput() {
 
 	// Handle movement based on key presses and check next tile for collisions
 	if ebiten.IsKeyPressed(ebiten.KeyD) && checkNextTile(2) { // Move right
 		char.pos.float_x += char.speed * float32(globalGameState.deltatime)
+		char.running = true
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) && checkNextTile(3) { // Move left
 		char.pos.float_x -= char.speed * float32(globalGameState.deltatime)
+		char.running = true
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyW) && checkNextTile(0) { // Move up
 		char.pos.float_y -= char.speed * float32(globalGameState.deltatime)
+		char.running = true
+		char.facingFront = false
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyS) && checkNextTile(1) { // Move down
 		char.pos.float_y += char.speed * float32(globalGameState.deltatime)
+		char.running = true
+		char.facingFront = true
 	}
 
 	// Handle dash timing and cooldown
@@ -148,7 +153,7 @@ func checkMovement() {
 		elapsed := time.Since(char.dashStart)
 		if elapsed > time.Duration(char.dashDuration)*time.Millisecond {
 			char.dashing = false
-			char.speed = 360           // Reset speed after dash ends
+			char.speed = 150           // Reset speed after dash ends
 			char.lastDash = time.Now() // Record end time for cooldown tracking
 		}
 	}
