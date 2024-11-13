@@ -129,12 +129,12 @@ func checkZoom() {
 	if my < 0 && globalGameState.camera.zoom < 2.5 {
 		for i := 0; i < 4 && globalGameState.camera.zoom > 0.5; i++ {
 			time.Sleep(4 * time.Millisecond)
-			globalGameState.camera.zoom -= 0.002
+			globalGameState.camera.zoom -= 0.02
 		}
 	} else if my > 0 && globalGameState.camera.zoom > 0.5 {
 		for i := 0; i < 4 && globalGameState.camera.zoom < 2.5; i++ {
 			time.Sleep(4 * time.Millisecond)
-			globalGameState.camera.zoom += 0.002
+			globalGameState.camera.zoom += 0.02
 		}
 	}
 }
@@ -176,9 +176,9 @@ func checkMovementAndInput() {
 		}
 
 		if elapsed < time.Duration(char.dashDuration)*time.Millisecond/2 {
-			globalGameState.camera.zoom += 0.005
+			globalGameState.camera.zoom += 0.001
 		} else {
-			globalGameState.camera.zoom -= 0.005
+			globalGameState.camera.zoom -= 0.001
 		}
 	}
 

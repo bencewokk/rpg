@@ -8,7 +8,7 @@ type gamemap struct {
 	// map data (2D array)
 	//
 	// 0 = not decided, 1 = mountains, 2 = plains, 3 = hills, 4 = forests
-	data [72][128]int
+	data [36][64]int
 
 	// height of the map
 	//

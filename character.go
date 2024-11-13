@@ -110,7 +110,7 @@ func createCharacter(title string) character {
 	c.title = title
 	c.hp = 1000
 	c.speed = 150
-	c.dashDuration = 500
+	c.dashDuration = 600
 	c.dashCooldown = 2
 
 	// Initialize the animation arrays to avoid index out of range
@@ -132,7 +132,7 @@ func updateAnimationCharacter() {
 		animationTimer += 0.01
 	}
 
-	if animationTimer >= 0.1 {
+	if animationTimer >= 0.15 {
 		if char.facingFront {
 			if char.running {
 				char.currentAnimationState_secondary = 2
@@ -147,10 +147,11 @@ func updateAnimationCharacter() {
 		char.picture = char.allAnimations[char.currentAnimationState_secondary][char.currentAnimationState_primary]
 		animationTimer = 0.0
 	}
+
 }
 
 // DrawCharacter draws the character centered on the screen
-func (c character) DrawCharacter(screen *ebiten.Image) {
+func (c *character) DrawCharacter(screen *ebiten.Image) {
 
 	op := &ebiten.DrawImageOptions{}
 

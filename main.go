@@ -10,25 +10,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-func gameinit() {
-
-	load()
-
-	ebiten.SetFullscreen(true)
-	ebiten.SetWindowTitle("rpg")
-
-	globalGameState.currentmap = createMap(36)
-
-	screendivisor = screenHeight / float32(globalGameState.currentmap.height)
-	intscreendivisor = int(screenHeight) / globalGameState.currentmap.height
-
-	char.pos.float_y = screenHeight / 2
-	char.pos.float_x = screenWidth / 2
-
-	globalGameState.camera.zoom = 2
-
-}
-
 // Screen sizes
 var (
 	width, height = ebiten.Monitor().Size()
@@ -39,7 +20,27 @@ var (
 	intscreendivisor int
 )
 
-type Game struct{}
+func gameinit() {
+
+	load()
+
+	ebiten.SetFullscreen(true)
+	ebiten.SetWindowTitle("rpg")
+
+	globalGameState.currentmap = createMap(36)
+	// 1080/36--30
+	screendivisor = screenHeight / float32(globalGameState.currentmap.height)
+	intscreendivisor = int(screenHeight) / globalGameState.currentmap.height
+
+	char.pos.float_y = screenHeight / 2
+	char.pos.float_x = screenWidth / 2
+
+	globalGameState.camera.zoom = 1
+
+}
+
+type Game struct {
+}
 
 // Update method of the Game
 func (g *Game) Update() error {
@@ -154,6 +155,9 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	gameinit()
+
+	fmt.Println(globalGameState.currentmap)
+
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
 	}

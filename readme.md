@@ -4,6 +4,12 @@
 
 This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game engine for Go. The game is still in its early stages. 
 
+## Controls
+
+- AWSD - movement
+- shift - dashing
+- mousewheel - zooming
+
 ## Logs
 
 ### Version History
@@ -49,7 +55,10 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 #### 2024.11.07 - version 0.0.9
 - Added camerea tracking
 
-#### 2024.11.13 - version 0.0.10
+#### 2024.11.13 - version 0.1.1
 - Added tilemap textures
 - Added animations for character 
 - Started working on texture handling
+- Finished dashing-ui
+- Fixed zooming
+
