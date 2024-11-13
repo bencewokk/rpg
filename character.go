@@ -109,7 +109,7 @@ func createCharacter(title string) character {
 	c.title = title
 	c.hp = 1000
 	c.speed = 150
-	c.dashDuration = 200
+	c.dashDuration = 500
 	c.dashCooldown = 1
 
 	// Initialize the animation arrays to avoid index out of range
@@ -215,6 +215,6 @@ func (c *character) Dash() {
 	if !c.dashing {
 		c.dashing = true
 		c.dashStart = time.Now()
-		c.speed = 600 // Increase speed for dash
+		c.speed = 450 // Increase speed for dash
 	}
 }

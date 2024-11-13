@@ -111,8 +111,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					screen,
 					(float32(j*intscreendivisor-intscreendivisor/2)+camera.pos.float_x)*camera.zoom+screenWidth/2,
 					(float32(i*intscreendivisor-intscreendivisor/2)+camera.pos.float_y)*camera.zoom+screenHeight/2,
-					screendivisor*2,
-					screendivisor*2,
+					screendivisor*camera.zoom,
+					screendivisor*camera.zoom,
 					currenttilecolor,
 					false,
 				)

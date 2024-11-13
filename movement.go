@@ -123,7 +123,29 @@ func checkCollision(first, second pos) bool {
 	return false // No collision
 }
 
+func checkZoom() {
+	_, my := ebiten.Wheel()
+
+	if my < 0 && globalGameState.camera.zoom < 2.5 {
+		for i := 0.0; i < 0.4; {
+			time.Sleep(4 * time.Millisecond)
+			globalGameState.camera.zoom += 0.002
+			i += 0.01
+		}
+	} else if my > 0 && globalGameState.camera.zoom > 0.5 {
+		//globalGameState.camera.zoom -= 0.03
+
+		for i := 0.0; i < 0.4; {
+			time.Sleep(4 * time.Millisecond)
+			globalGameState.camera.zoom -= 0.002
+			i += 0.01
+		}
+	}
+}
+
 func checkMovementAndInput() {
+
+	go checkZoom()
 
 	// Handle movement based on key presses and check next tile for collisions
 	if ebiten.IsKeyPressed(ebiten.KeyD) && checkNextTile(2) { // Move right
@@ -155,6 +177,12 @@ func checkMovementAndInput() {
 			char.dashing = false
 			char.speed = 150           // Reset speed after dash ends
 			char.lastDash = time.Now() // Record end time for cooldown tracking
+		}
+
+		if elapsed < time.Duration(char.dashDuration)*time.Millisecond/2 {
+			globalGameState.camera.zoom += 0.005
+		} else {
+			globalGameState.camera.zoom -= 0.005
 		}
 	}
 
