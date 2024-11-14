@@ -126,12 +126,12 @@ func checkCollision(first, second pos) bool {
 func checkZoom() {
 	_, my := ebiten.Wheel()
 
-	if my < 0 && globalGameState.camera.zoom < 2.5 {
+	if my < 0 {
 		for i := 0; i < 4 && globalGameState.camera.zoom > 0.5; i++ {
 			time.Sleep(4 * time.Millisecond)
 			globalGameState.camera.zoom -= 0.02
 		}
-	} else if my > 0 && globalGameState.camera.zoom > 0.5 {
+	} else if my > 0 {
 		for i := 0; i < 4 && globalGameState.camera.zoom < 2.5; i++ {
 			time.Sleep(4 * time.Millisecond)
 			globalGameState.camera.zoom += 0.02
@@ -176,9 +176,9 @@ func checkMovementAndInput() {
 		}
 
 		if elapsed < time.Duration(char.dashDuration)*time.Millisecond/2 {
-			globalGameState.camera.zoom += 0.001
+			globalGameState.camera.zoom += 0.003
 		} else {
-			globalGameState.camera.zoom -= 0.001
+			globalGameState.camera.zoom -= 0.003
 		}
 	}
 

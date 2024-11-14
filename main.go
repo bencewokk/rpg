@@ -155,9 +155,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 
 func main() {
 	gameinit()
-
-	fmt.Println(globalGameState.currentmap)
-
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
 	}

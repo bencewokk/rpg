@@ -48,7 +48,7 @@ type gamestate struct {
 	// date of last update
 	lastUpdateTime time.Time
 
-	// contains the camere positions
+	// contains the camera positions
 	//
 	// this is used in the rendering, it offsets the drawing positions
 	camera camera
