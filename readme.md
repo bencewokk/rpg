@@ -2,7 +2,7 @@
 
 ## Description
 
-This is a basic RPG game built with [\[Ebiten\](https://ebitengine.org/)](https://ebitengine.org/), a 2D game engine for Go. The game is still in its early stages. 
+This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game engine for Go. The game is still in its early stages. 
 
 ## Controls
 
@@ -65,4 +65,4 @@ This is a basic RPG game built with [\[Ebiten\](https://ebitengine.org/)](https:
 - Fixed zooming
 
 #### 2024.11.14 - version 0.1.3
-- Added [\[mapmaker\]()](https://github.com/bencewokk/mapmaker)
+- Added [mapmaker](https://github.com/bencewokk/mapmaker)
