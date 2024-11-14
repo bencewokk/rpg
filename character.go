@@ -109,7 +109,7 @@ func createCharacter(title string) character {
 	var c character
 	c.title = title
 	c.hp = 1000
-	c.speed = 150
+	c.speed = 200
 	c.dashDuration = 600
 	c.dashCooldown = 2
 
@@ -217,6 +217,6 @@ func (c *character) Dash() {
 	if !c.dashing {
 		c.dashing = true
 		c.dashStart = time.Now()
-		c.speed = 450 // Increase speed for dash
+		c.speed = 500 // Increase speed for dash
 	}
 }

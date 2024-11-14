@@ -23,14 +23,13 @@ var (
 func gameinit() {
 
 	load()
+	readMapData()
 
 	ebiten.SetFullscreen(true)
 	ebiten.SetWindowTitle("rpg")
 
-	globalGameState.currentmap = createMap(36)
-	// 1080/36--30
-	screendivisor = screenHeight / float32(globalGameState.currentmap.height)
-	intscreendivisor = int(screenHeight) / globalGameState.currentmap.height
+	screendivisor = 30
+	intscreendivisor = 30
 
 	char.pos.float_y = screenHeight / 2
 	char.pos.float_x = screenWidth / 2
@@ -107,6 +106,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 					currenttilecolor = mdarkgray
 				case 4:
 					currenttilecolor = mdarkgreen
+				default:
+					currenttilecolor = uitransparent
 				}
 				vector.DrawFilledRect(
 					screen,

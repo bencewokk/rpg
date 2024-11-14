@@ -1,6 +1,11 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -8,7 +13,7 @@ type gamemap struct {
 	// map data (2D array)
 	//
 	// 0 = not decided, 1 = mountains, 2 = plains, 3 = hills, 4 = forests
-	data [36][64]int
+	data [200][150]int
 
 	// height of the map
 	//
@@ -57,4 +62,70 @@ type gamestate struct {
 func updateCamera() {
 	globalGameState.camera.pos.float_x = char.pos.float_x * -1
 	globalGameState.camera.pos.float_y = char.pos.float_y * -1
+}
+
+// Function to load map data from a file and set width/height in currentmap
+func readMapData() {
+	filename := "example.txt"
+
+	file, err := os.Open(filename)
+	if err != nil {
+		fmt.Println("Error opening the file:", err)
+		return
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	y := 0
+	maxWidth := 0
+
+	// First pass to determine the maximum width of the map
+	var lines []string
+	for scanner.Scan() {
+		line := scanner.Text()
+		lines = append(lines, line)
+		values := strings.Split(line, ",")
+
+		rowWidth := len(values)
+		if rowWidth > maxWidth {
+			maxWidth = rowWidth
+		}
+		y++
+	}
+
+	// Set the map dimensions based on the number of rows (y) and maximum width
+	globalGameState.currentmap.width = maxWidth
+	globalGameState.currentmap.height = y
+
+	// Now read the data into the map
+	for i, line := range lines {
+		values := strings.Split(line, ",")
+		for x, value := range values {
+			// Trim leading and trailing whitespace before parsing
+			value = strings.TrimSpace(value)
+
+			// Skip empty strings
+			if value == "" {
+				continue
+			}
+
+			intValue, err := strconv.Atoi(value)
+			if err != nil {
+				fmt.Println("Error parsing integer:", err)
+				return
+			}
+			// Use the current index (i) and x to fill the map
+			globalGameState.currentmap.data[i][x] = intValue
+		}
+
+	}
+
+	// Check for errors after scanning
+	if err := scanner.Err(); err != nil {
+		fmt.Println("Error reading the file:", err)
+		return
+	}
+
+	fmt.Println("Map data loaded successfully!")
+	fmt.Printf("Map dimensions: %d x %d\n", globalGameState.currentmap.width, globalGameState.currentmap.height)
 }

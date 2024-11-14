@@ -171,7 +171,7 @@ func checkMovementAndInput() {
 		elapsed := time.Since(char.dashStart)
 		if elapsed > time.Duration(char.dashDuration)*time.Millisecond {
 			char.dashing = false
-			char.speed = 150           // Reset speed after dash ends
+			char.speed = 200           // Reset speed after dash ends
 			char.lastDash = time.Now() // Record end time for cooldown tracking
 		}
 
