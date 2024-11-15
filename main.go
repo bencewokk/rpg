@@ -58,7 +58,6 @@ var (
 
 // Draw method of the Game
 func (g *Game) Draw(screen *ebiten.Image) {
-
 	camera := globalGameState.camera
 
 	now := time.Now()
@@ -97,27 +96,31 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		//TODO redo this comment and make this into a function
 		for i := 0; i < globalGameState.currentmap.height; i++ {
 			for j := 0; j < globalGameState.currentmap.width; j++ {
-				switch globalGameState.currentmap.data[i][j] {
-				case 2:
-					currenttilecolor = mlightgreen
-				case 3:
-					currenttilecolor = mbrown
-				case 1:
-					currenttilecolor = mdarkgray
-				case 4:
-					currenttilecolor = mdarkgreen
-				default:
-					currenttilecolor = uitransparent
+				if globalGameState.currentmap.texture[i][j] == nil {
+					switch globalGameState.currentmap.data[i][j] {
+					case 2:
+						currenttilecolor = mlightgreen
+					case 3:
+						currenttilecolor = mbrown
+					case 1:
+						currenttilecolor = mdarkgray
+					case 4:
+						currenttilecolor = mdarkgreen
+					default:
+						currenttilecolor = uitransparent
+					}
+					vector.DrawFilledRect(
+						screen,
+						(float32(j*intscreendivisor-intscreendivisor/2)+camera.pos.float_x)*camera.zoom+screenWidth/2,
+						(float32(i*intscreendivisor-intscreendivisor/2)+camera.pos.float_y)*camera.zoom+screenHeight/2,
+						screendivisor*camera.zoom,
+						screendivisor*camera.zoom,
+						currenttilecolor,
+						false,
+					)
+				} else {
+					fmt.Println("fasfd")
 				}
-				vector.DrawFilledRect(
-					screen,
-					(float32(j*intscreendivisor-intscreendivisor/2)+camera.pos.float_x)*camera.zoom+screenWidth/2,
-					(float32(i*intscreendivisor-intscreendivisor/2)+camera.pos.float_y)*camera.zoom+screenHeight/2,
-					screendivisor*camera.zoom,
-					screendivisor*camera.zoom,
-					currenttilecolor,
-					false,
-				)
 
 				// posX := (float32(j*intscreendivisor-intscreendivisor/2)+camera.pos.float_x)*camera.zoom + screenWidth/2
 				// posY := (float32(i*intscreendivisor-intscreendivisor/2)+camera.pos.float_y)*camera.zoom + screenHeight/2

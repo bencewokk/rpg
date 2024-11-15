@@ -148,13 +148,10 @@ func checkMovementAndInput() {
 	intmx, intmy := ebiten.CursorPosition()
 	cursor.float_x, cursor.float_y = (float32(intmx)+globalGameState.camera.pos.float_x)*globalGameState.camera.zoom+screenWidth/2,
 		(float32(intmy)+globalGameState.camera.pos.float_y)*globalGameState.camera.zoom+screenHeight/2
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButton0) {
-		globalGameState.currentmap.parseTexture(cursor)
-	}
 
-	// if ebiten.IsMouseButtonPressed(ebiten.MouseButton0) {
-	// 	parseTexture(globalGameState.currentmap, cursor)
-	// }
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButton0) {
+		parseTexture(cursor)
+	}
 
 	// Handle movement based on key presses and check next tile for collisions
 	if ebiten.IsKeyPressed(ebiten.KeyD) && checkNextTile(2) { // Move right
