@@ -10,15 +10,21 @@ func (gamemap *gamemap) parseTexture(pos pos) {
 
 	fmt.Println(j, i)
 
-	// if gamemap.data[j+1][i+1] s
-	// if gamemap.data[j+1][i]
-	// if gamemap.data[j+1][i-1]
-	// if gamemap.data[j][i-1]
-	// if gamemap.data[j][i+1]
-	// if gamemap.data[j-1][i+1]
-	// if gamemap.data[j-1][i]
-	// if gamemap.data[j-1][i-1]
+	var textureID string = ""
+	if gamemap.data[j-1][i+1] == 2 { // upper right
+		textureID += "G"
+	} // upper right
+	// if gamemap.data[j-1][i] // upper
+	// gamemap.data[j-1][i-1] = 4 // upper leftÍ
 
+	// 0 = not decided, 1 = mountains, 2 = plains, 3 = dry
+	// if gamemap.data[j+1][i+1]  //lower right
+	// if gamemap.data[j+1][i] // lower
+	// gamemap.data[j+1][i-1] = 4 // lower left
+	// if gamemap.data[j][i-1] // left
+	// if gamemap.data[j][i+1] // right
+
+	fmt.Println(textureID)
 	//}
 	//}
 }

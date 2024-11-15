@@ -14,7 +14,7 @@ import (
 type gamemap struct {
 	// map data (2D array)
 	//
-	// 0 = not decided, 1 = mountains, 2 = plains, 3 = hills, 4 = forests
+	// 0 = not decided, 1 = mountains, 2 = plains, 3 = dry
 	data    [200][150]int
 	texture [200][150]*ebiten.Image
 
