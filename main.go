@@ -146,7 +146,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	fps := ebiten.CurrentFPS()
 	fpsText := fmt.Sprintf("FPS: %.2f", fps)
 	ebitenutil.DebugPrint(screen, fpsText)
-
 }
 
 // Layout method of the Game

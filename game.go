@@ -7,13 +7,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type gamemap struct {
 	// map data (2D array)
 	//
 	// 0 = not decided, 1 = mountains, 2 = plains, 3 = hills, 4 = forests
-	data [200][150]int
+	data    [200][150]int
+	texture [200][150]*ebiten.Image
 
 	// height of the map
 	//
@@ -66,7 +69,7 @@ func updateCamera() {
 
 // Function to load map data from a file and set width/height in currentmap
 func readMapData() {
-	filename := "example.txt"
+	filename := "map.txt"
 
 	file, err := os.Open(filename)
 	if err != nil {
