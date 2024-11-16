@@ -1,5 +1,7 @@
 # RPG Game with Ebiten
 
+![Game Screenshot](readme/screenshot.png)
+
 ## Description
 
 This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game engine for Go. The game is still in its early stages. 
@@ -17,7 +19,6 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 #### 2024.10.19 - Version 0.0.1
 - Initial setup of the game loop (no game logic implemented yet).
 - Added button UI functions and basic game variables, such as `gamestate`.
-- Started menu with options and play buttons.
 
 #### 2024.10.20 - Version 0.0.2
 - Moved `screenWidth` and `screenHeight` out of `gamestate`.
@@ -34,8 +35,7 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
   - Improved randomization.
 
 #### 2024.10.24 - Version 0.0.5
-- Created a `Character` struct.
-- Standardized position handling with a `Position` struct.
+- Standardized position handling with a `pos` struct.
 - Added basic character movement.
 - Refactored code by splitting `main` into multiple files.
 
@@ -45,8 +45,6 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 #### 2024.11.01 - version 0.0.7
 - Added delta time
 - Added enemies
-  - You bounce of the enemies
-- Added a few collision detections
 
 #### 2024.11.01 - version 0.0.8
 - Added sliders to util package

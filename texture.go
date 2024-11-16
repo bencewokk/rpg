@@ -103,14 +103,11 @@ func parseTexture() {
 				} else {
 					globalGameState.currentmap.texture[i][j] = grassTextures[rand.Int31n(3)+5]
 				}
-
 			}
-
 		}
 	}
 }
 
-// i is y coord, j is x coord
 func drawTile(screen, t *ebiten.Image, i, j int) {
 	op := &ebiten.DrawImageOptions{}
 

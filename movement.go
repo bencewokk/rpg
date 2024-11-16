@@ -153,6 +153,24 @@ func checkMovementAndInput() {
 	// 	parseTexture(cursor)
 	// }
 
+	x, y := ptid(char.pos)
+
+	// Check if the current tile has the value 3
+	if globalGameState.currentmap.data[y][x] == 3 {
+		// If the character steps on tile 3, start the speed boost timer
+		char.lastSpeedBoostTime = time.Now()
+	}
+
+	// Check if the speed boost duration has expired
+	if !char.dashing {
+		if time.Since(char.lastSpeedBoostTime) <= 500*time.Millisecond {
+			char.speed = 300 // Maintain boosted speed
+		} else {
+			char.speed = 200 // Revert to default speed
+		}
+
+	}
+
 	// Handle movement based on key presses and check next tile for collisions
 	if ebiten.IsKeyPressed(ebiten.KeyD) && checkNextTile(2) { // Move right
 		char.pos.float_x += char.speed * float32(globalGameState.deltatime)

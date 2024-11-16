@@ -85,23 +85,14 @@ type character struct {
 	dashCooldown time.Duration
 	barFilling   bool
 
-	currentAnimationState_primary int // use this to index allAnimation []EbitenImage
-	// Load all animations
-	//
-	// 0 FRONT IDLE
-	//
-	// 1 BACK IDLE
-	//
-	// 2 FRONT RUNNING
-	//
-	// 3 BACK RUNNING
-	//
-	// 4 TO BE DICEDED ON DRAWCALL
+	currentAnimationState_primary   int // use this to index allAnimation []EbitenImage
 	currentAnimationState_secondary int // use this to index allAnimation []EbitenImage
 
 	allAnimations [6][]*ebiten.Image
 	facingFront   bool
 	running       bool
+
+	lastSpeedBoostTime time.Time
 }
 
 // Returns a character with the given title and path to the picture
