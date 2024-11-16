@@ -1,9 +1,5 @@
 package main
 
-import (
-	"math/rand"
-)
-
 const (
 	multipler_hillchance     = 1.1
 	multipler_forestchance   = 1.1
@@ -11,12 +7,6 @@ const (
 	multipler_general_top    = 60
 	multipler_general_bottom = 1.3
 )
-
-// Returns either true or false
-func calcChance(chance float64) bool {
-	flip := float64(rand.Intn(100))
-	return flip < chance
-}
 
 func createMap(_height int) gamemap {
 	var (

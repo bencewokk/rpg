@@ -164,9 +164,9 @@ func checkMovementAndInput() {
 	// Check if the speed boost duration has expired
 	if !char.dashing {
 		if time.Since(char.lastSpeedBoostTime) <= 500*time.Millisecond {
-			char.speed = 300 // Maintain boosted speed
+			char.speed = ONDRYSPEED // Maintain boosted speed
 		} else {
-			char.speed = 200 // Revert to default speed
+			char.speed = NORMALSPEED // Revert to default speed
 		}
 
 	}
@@ -199,7 +199,7 @@ func checkMovementAndInput() {
 		elapsed := time.Since(char.dashStart)
 		if elapsed > time.Duration(char.dashDuration)*time.Millisecond {
 			char.dashing = false
-			char.speed = 200           // Reset speed after dash ends
+			char.speed = NORMALSPEED   // Reset speed after dash ends
 			char.lastDash = time.Now() // Record end time for cooldown tracking
 		}
 

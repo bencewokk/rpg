@@ -6,7 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func parseTexture() {
+func parseTextureAndSprites() {
 
 	var (
 		DDDDD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DDDD.png")
@@ -106,6 +106,36 @@ func parseTexture() {
 			}
 		}
 	}
+
+	globalGameState.currentmap.sprites = append(globalGameState.currentmap.sprites, createSprite(createPos(1500, 400), 0))
+
+}
+
+var (
+	tree_S1 *ebiten.Image = loadPNG("import/prop/tree1.png")
+	tree_S2 *ebiten.Image = loadPNG("import/prop/tree2.png")
+)
+
+var trees = []*ebiten.Image{tree_S1, tree_S2}
+
+func createSprite(pos pos, typeOf int) sprite {
+	var texture *ebiten.Image
+	if typeOf == 0 {
+		texture = trees[rand.Intn(len(trees))]
+	}
+	return sprite{pos: pos, texture: texture}
+}
+
+func drawSprite(screen, t *ebiten.Image, pos pos) {
+	op := &ebiten.DrawImageOptions{}
+
+	op.GeoM.Scale(float64(globalGameState.camera.zoom)*1.5, float64(globalGameState.camera.zoom)*1.5)
+
+	op.GeoM.Translate(
+		float64(((pos.float_x)+globalGameState.camera.pos.float_x)*globalGameState.camera.zoom+screenWidth/2),
+		float64(((pos.float_y)+globalGameState.camera.pos.float_y)*globalGameState.camera.zoom+screenHeight/2))
+	screen.DrawImage(t, op)
+
 }
 
 func drawTile(screen, t *ebiten.Image, i, j int) {
@@ -116,10 +146,13 @@ func drawTile(screen, t *ebiten.Image, i, j int) {
 	scaleY := float64(screendivisor) / float64(originalHeight) * float64(globalGameState.camera.zoom)
 	op.GeoM.Scale(scaleX, scaleY)
 
-	x := float64((float32(j*intscreendivisor-intscreendivisor/2)+globalGameState.camera.pos.float_x)*globalGameState.camera.zoom + screenWidth/2)
-	y := float64((float32(i*intscreendivisor-intscreendivisor/2)+globalGameState.camera.pos.float_y)*globalGameState.camera.zoom + screenHeight/2)
-
-	op.GeoM.Translate(x, y)
+	op.GeoM.Translate(
+		float64((float32(j*intscreendivisor-intscreendivisor/2)+globalGameState.camera.pos.float_x)*globalGameState.camera.zoom+screenWidth/2),
+		float64((float32(i*intscreendivisor-intscreendivisor/2)+globalGameState.camera.pos.float_y)*globalGameState.camera.zoom+screenHeight/2))
 
 	screen.DrawImage(t, op)
+}
+
+func loadSrite(screen, s *ebiten.Image, p pos) {
+
 }

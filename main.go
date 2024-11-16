@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sort"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -24,7 +25,8 @@ func gameinit() {
 
 	load()
 	readMapData()
-	parseTexture()
+	readMapSprites()
+	parseTextureAndSprites()
 
 	ebiten.SetFullscreen(true)
 	ebiten.SetWindowTitle("rpg")
@@ -59,7 +61,6 @@ var (
 
 // Draw method of the Game
 func (g *Game) Draw(screen *ebiten.Image) {
-	camera := globalGameState.camera
 
 	now := time.Now()
 	globalGameState.deltatime = now.Sub(globalGameState.lastUpdateTime).Seconds()
@@ -97,42 +98,22 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		//TODO redo this comment and make this into a function
 		for i := 0; i < globalGameState.currentmap.height; i++ {
 			for j := 0; j < globalGameState.currentmap.width; j++ {
-				if globalGameState.currentmap.texture[i][j] == nil {
-					switch globalGameState.currentmap.data[i][j] {
-					case 2:
-						currenttilecolor = mlightgreen
-					case 3:
-						currenttilecolor = mbrown
-					case 1:
-						currenttilecolor = mdarkgray
-					case 4:
-						currenttilecolor = mdarkgreen
-					default:
-						currenttilecolor = uitransparent
-					}
-					vector.DrawFilledRect(
-						screen,
-						(float32(j*intscreendivisor-intscreendivisor/2)+camera.pos.float_x)*camera.zoom+screenWidth/2,
-						(float32(i*intscreendivisor-intscreendivisor/2)+camera.pos.float_y)*camera.zoom+screenHeight/2,
-						screendivisor*camera.zoom,
-						screendivisor*camera.zoom,
-						currenttilecolor,
-						false,
-					)
-				} else {
+				if globalGameState.currentmap.texture[i][j] != nil {
 
 					drawTile(screen, globalGameState.currentmap.texture[i][j], i, j)
 
 				}
 
-				// posX := (float32(j*intscreendivisor-intscreendivisor/2)+camera.pos.float_x)*camera.zoom + screenWidth/2
-				// posY := (float32(i*intscreendivisor-intscreendivisor/2)+camera.pos.float_y)*camera.zoom + screenHeight/2
-
-				// var a string = strconv.Itoa(j) + " " + strconv.Itoa(i)
-
-				// ebitenutil.DebugPrintAt(screen, "K", int(posX), int(posY))
 			}
 
+		}
+
+		for i := 0; i < len(globalGameState.currentmap.sprites); i++ {
+			//fmt.Println(len(currentmap.sprites))
+			sort.Slice(globalGameState.currentmap.sprites, func(i, j int) bool {
+				return globalGameState.currentmap.sprites[i].pos.float_y < globalGameState.currentmap.sprites[j].pos.float_y
+			})
+			drawSprite(screen, globalGameState.currentmap.sprites[i].texture, globalGameState.currentmap.sprites[i].pos)
 		}
 
 		char.DrawCharacter(screen)

@@ -1,32 +1,17 @@
 package main
 
 import (
-	"image/png"
-	"log"
 	"math"
-	"os"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func loadPNG(path string) *ebiten.Image {
-	// Open the image file
-	file, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	// Decode the image file into an image.Image
-	imgData, err := png.Decode(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Convert the image.Image to an *ebiten.Image
-	return ebiten.NewImageFromImage(imgData)
-}
+const (
+	NORMALSPEED = 150
+	ONDRYSPEED  = 300
+	DASHSPEED   = 500
+)
 
 // Global variable for player
 var char character = createCharacter("character")
@@ -100,7 +85,7 @@ func createCharacter(title string) character {
 	var c character
 	c.title = title
 	c.hp = 1000
-	c.speed = 200
+	c.speed = NORMALSPEED
 	c.dashDuration = 600
 	c.dashCooldown = 2
 
@@ -208,6 +193,6 @@ func (c *character) Dash() {
 	if !c.dashing {
 		c.dashing = true
 		c.dashStart = time.Now()
-		c.speed = 500 // Increase speed for dash
+		c.speed = DASHSPEED // Increase speed for dash
 	}
 }

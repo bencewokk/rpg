@@ -2,12 +2,40 @@ package main
 
 import (
 	"image/color"
+	"image/png"
+	"log"
+	"math/rand"
+	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
+
+// Returns either true or false
+func calcChance(chance float64) bool {
+	flip := float64(rand.Intn(100))
+	return flip < chance
+}
+
+func loadPNG(path string) *ebiten.Image {
+	// Open the image file
+	file, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	// Decode the image file into an image.Image
+	imgData, err := png.Decode(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Convert the image.Image to an *ebiten.Image
+	return ebiten.NewImageFromImage(imgData)
+}
 
 // Color variable for ui
 var (
@@ -122,8 +150,6 @@ func createPos(x, y float32) pos {
 		float_y: y,
 	}
 }
-
-var on bool
 
 func inSlide(s *slider) bool {
 
