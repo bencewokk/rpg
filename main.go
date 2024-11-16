@@ -24,6 +24,7 @@ func gameinit() {
 
 	load()
 	readMapData()
+	parseTexture()
 
 	ebiten.SetFullscreen(true)
 	ebiten.SetWindowTitle("rpg")
@@ -119,7 +120,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 						false,
 					)
 				} else {
-					fmt.Println("fasfd")
+
+					drawTile(screen, globalGameState.currentmap.texture[i][j], i, j)
+
 				}
 
 				// posX := (float32(j*intscreendivisor-intscreendivisor/2)+camera.pos.float_x)*camera.zoom + screenWidth/2
