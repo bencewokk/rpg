@@ -115,6 +115,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		}
 
+		go checkZoom()
+
 		char.DrawCharacter(screen)
 		checkMovementAndInput()
 		updateAnimationCharacter()
