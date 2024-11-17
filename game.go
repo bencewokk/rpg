@@ -10,8 +10,8 @@ type gamemap struct {
 	// map data (2D array)
 	//
 	// 0 = not decided, 1 = mountains, 2 = plains, 3 = dry
-	data    [300][150]int
-	texture [300][150]*ebiten.Image
+	data    [100][150]int
+	texture [100][150]*ebiten.Image
 
 	// height of the map
 	//
@@ -20,6 +20,11 @@ type gamemap struct {
 	width  int
 
 	sprites []sprite
+}
+
+type drawable struct {
+	typeOf int
+	pos    pos
 }
 
 // read more in gamestate
@@ -33,6 +38,14 @@ type camera struct {
 type sprite struct {
 	pos     pos
 	texture *ebiten.Image
+}
+
+func offsetsx(tobeoffset float32) float32 {
+	return ((tobeoffset+globalGameState.camera.pos.float_x)*globalGameState.camera.zoom + screenWidth/2)
+}
+func offsetsy(tobeoffset float32) float32 {
+	return ((tobeoffset+globalGameState.camera.pos.float_y)*globalGameState.camera.zoom + screenHeight/2)
+
 }
 
 // contains all global information about the game

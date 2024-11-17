@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"sort"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -25,7 +24,6 @@ func gameinit() {
 
 	load()
 	readMapData()
-	readMapSprites()
 	parseTextureAndSprites()
 
 	ebiten.SetFullscreen(true)
@@ -110,10 +108,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		for i := 0; i < len(globalGameState.currentmap.sprites); i++ {
 			//fmt.Println(len(currentmap.sprites))
-			sort.Slice(globalGameState.currentmap.sprites, func(i, j int) bool {
-				return globalGameState.currentmap.sprites[i].pos.float_y < globalGameState.currentmap.sprites[j].pos.float_y
-			})
+			// sort.Slice(globalGameState.currentmap.sprites, func(i, j int) bool {
+			// 	return globalGameState.currentmap.sprites[i].pos.float_y < globalGameState.currentmap.sprites[j].pos.float_y
+			// })
 			drawSprite(screen, globalGameState.currentmap.sprites[i].texture, globalGameState.currentmap.sprites[i].pos)
+
 		}
 
 		char.DrawCharacter(screen)

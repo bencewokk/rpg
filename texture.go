@@ -132,8 +132,8 @@ func drawSprite(screen, t *ebiten.Image, pos pos) {
 	op.GeoM.Scale(float64(globalGameState.camera.zoom)*1.5, float64(globalGameState.camera.zoom)*1.5)
 
 	op.GeoM.Translate(
-		float64(((pos.float_x)+globalGameState.camera.pos.float_x)*globalGameState.camera.zoom+screenWidth/2),
-		float64(((pos.float_y)+globalGameState.camera.pos.float_y)*globalGameState.camera.zoom+screenHeight/2))
+		float64(offsetsx(pos.float_x)),
+		float64(offsetsy(pos.float_y)))
 	screen.DrawImage(t, op)
 
 }
@@ -147,9 +147,8 @@ func drawTile(screen, t *ebiten.Image, i, j int) {
 	op.GeoM.Scale(scaleX, scaleY)
 
 	op.GeoM.Translate(
-		float64((float32(j*intscreendivisor-intscreendivisor/2)+globalGameState.camera.pos.float_x)*globalGameState.camera.zoom+screenWidth/2),
-		float64((float32(i*intscreendivisor-intscreendivisor/2)+globalGameState.camera.pos.float_y)*globalGameState.camera.zoom+screenHeight/2))
-
+		float64(offsetsx(float32(j*intscreendivisor-intscreendivisor/2))),
+		float64(offsetsy(float32(i*intscreendivisor-intscreendivisor/2))))
 	screen.DrawImage(t, op)
 }
 
