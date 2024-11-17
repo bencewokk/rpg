@@ -22,11 +22,6 @@ type gamemap struct {
 	sprites []sprite
 }
 
-type drawable struct {
-	typeOf int
-	pos    pos
-}
-
 // read more in gamestate
 type camera struct {
 	pos pos
@@ -36,6 +31,7 @@ type camera struct {
 }
 
 type sprite struct {
+	typeOf  int
 	pos     pos
 	texture *ebiten.Image
 }

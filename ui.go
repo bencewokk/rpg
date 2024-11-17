@@ -50,6 +50,6 @@ func drawUi(s *ebiten.Image) {
 	if char.dashing {
 		secondaryBar = 0
 	}
-	vector.DrawFilledRect(s, 60, screenHeight-30, 600, 20, uidarkred, false)
-	vector.DrawFilledRect(s, 60, screenHeight-30, secondaryBar, 20, uilightred, false)
+	vector.DrawFilledRect(s, 60, screenHeight-30, 600, 15, uidarkred, false)
+	vector.DrawFilledRect(s, 60, screenHeight-30, secondaryBar, 15, uilightred, false)
 }

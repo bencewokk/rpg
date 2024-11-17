@@ -26,6 +26,8 @@ func gameinit() {
 	readMapData()
 	parseTextureAndSprites()
 
+	addAllToDrawables()
+
 	ebiten.SetFullscreen(true)
 	ebiten.SetWindowTitle("rpg")
 
@@ -92,6 +94,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case 3:
 
 		updateCamera()
+		updatePositions()
+		sortDrawablesByY()
 
 		//TODO redo this comment and make this into a function
 		for i := 0; i < globalGameState.currentmap.height; i++ {
@@ -106,18 +110,25 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		}
 
-		for i := 0; i < len(globalGameState.currentmap.sprites); i++ {
-			//fmt.Println(len(currentmap.sprites))
-			// sort.Slice(globalGameState.currentmap.sprites, func(i, j int) bool {
-			// 	return globalGameState.currentmap.sprites[i].pos.float_y < globalGameState.currentmap.sprites[j].pos.float_y
-			// })
-			drawSprite(screen, globalGameState.currentmap.sprites[i].texture, globalGameState.currentmap.sprites[i].pos)
+		// for i := 0; i < len(globalGameState.currentmap.sprites); i++ {
+		// fmt.Println(len(currentmap.sprites))
+		// sort.Slice(globalGameState.currentmap.sprites, func(i, j int) bool {
+		// return globalGameState.currentmap.sprites[i].pos.float_y < globalGameState.currentmap.sprites[j].pos.float_y
+		// })
+		// 	drawSprite(screen, globalGameState.currentmap.sprites[i].texture, globalGameState.currentmap.sprites[i].pos)
+		// }
 
+		for i := 0; i < len(drawables); i++ {
+			switch drawables[i].character {
+			case nil:
+				drawSprite(screen, *drawables[i].sprite)
+			default:
+				char.DrawCharacter(screen)
+			}
 		}
 
 		go checkZoom()
 
-		char.DrawCharacter(screen)
 		checkMovementAndInput()
 		updateAnimationCharacter()
 
@@ -134,6 +145,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	fps := ebiten.CurrentFPS()
 	fpsText := fmt.Sprintf("FPS: %.2f", fps)
 	ebitenutil.DebugPrint(screen, fpsText)
+
+	fmt.Println(drawables)
 }
 
 // Layout method of the Game

@@ -123,13 +123,15 @@ func createSprite(pos pos, typeOf int) sprite {
 	if typeOf == 0 {
 		texture = trees[rand.Intn(len(trees))]
 	}
-	return sprite{pos: pos, texture: texture}
+	return sprite{pos: pos, texture: texture, typeOf: typeOf}
 }
 
-func drawSprite(screen, t *ebiten.Image, pos pos) {
+func drawSprite(screen *ebiten.Image, s sprite) {
+	pos := s.pos
+	t := s.texture
 	op := &ebiten.DrawImageOptions{}
 
-	op.GeoM.Scale(float64(globalGameState.camera.zoom)*1.5, float64(globalGameState.camera.zoom)*1.5)
+	op.GeoM.Scale(float64(globalGameState.camera.zoom)*1.7, float64(globalGameState.camera.zoom)*1.7)
 
 	op.GeoM.Translate(
 		float64(offsetsx(pos.float_x)),
@@ -150,8 +152,4 @@ func drawTile(screen, t *ebiten.Image, i, j int) {
 		float64(offsetsx(float32(j*intscreendivisor-intscreendivisor/2))),
 		float64(offsetsy(float32(i*intscreendivisor-intscreendivisor/2))))
 	screen.DrawImage(t, op)
-}
-
-func loadSrite(screen, s *ebiten.Image, p pos) {
-
 }

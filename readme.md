@@ -64,3 +64,7 @@ This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game
 
 #### 2024.11.14 - version 0.1.3
 - Added [mapmaker](https://github.com/bencewokk/mapmaker)
+
+#### 2024.11.17 - version 0.1.4
+- Implemented trees into the game and mapmaker
+- Added layering for trees and the character
