@@ -1,10 +1,12 @@
 # RPG Game with Ebiten
 
-![Game Screenshot](readme/screenshot.png)
+![Game Screenshot2](readme/screenshot2.png)
 
 ## Description
 
 This is a basic RPG game built with [Ebiten](https://ebitengine.org/), a 2D game engine for Go. The game is still in its early stages. 
+
+The [sprite pack](https://ipyxeloutlookcomar.itch.io/forgottenland) I am using can be found here. 
 
 ## Controls
 
