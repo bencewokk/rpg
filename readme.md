@@ -1,6 +1,5 @@
 # RPG Game with Ebiten
 
-![Game Screenshot](readme/screenshot.png)
 ![Game Screenshot2](readme/screenshot2.png)
 
 ## Description
