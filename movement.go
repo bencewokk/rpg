@@ -10,7 +10,7 @@ import (
 // 0 up, 1 down, 2 right, 3 left
 func checkNextTile(way int) bool {
 
-	//camera := globalGameState.camera
+	//camera := game.camera
 
 	charx := (char.pos.float_x)
 	chary := (char.pos.float_y)
@@ -39,12 +39,12 @@ func checkNextTile(way int) bool {
 		toprightpos.float_y -= 3
 
 		x, y = ptid(topleftpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
+		if game.currentmap.data[y][x] == 1 {
 			return false
 		}
 
 		x, y = ptid(toprightpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
+		if game.currentmap.data[y][x] == 1 {
 			return false
 		}
 
@@ -55,12 +55,12 @@ func checkNextTile(way int) bool {
 		bottomleftpos.float_y += 3
 
 		x, y = ptid(bottomleftpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
+		if game.currentmap.data[y][x] == 1 {
 			return false
 		}
 
 		x, y = ptid(bottomrightpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
+		if game.currentmap.data[y][x] == 1 {
 			return false
 		}
 
@@ -72,12 +72,12 @@ func checkNextTile(way int) bool {
 		toprightpos.float_x += 3
 
 		x, y = ptid(bottomrightpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
+		if game.currentmap.data[y][x] == 1 {
 			return false
 		}
 
 		x, y = ptid(toprightpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
+		if game.currentmap.data[y][x] == 1 {
 			return false
 		}
 
@@ -89,12 +89,12 @@ func checkNextTile(way int) bool {
 		bottomleftpos.float_x -= 3
 
 		x, y = ptid(topleftpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
+		if game.currentmap.data[y][x] == 1 {
 			return false
 		}
 
 		x, y = ptid(bottomleftpos)
-		if globalGameState.currentmap.data[y][x] == 1 {
+		if game.currentmap.data[y][x] == 1 {
 			return false
 		}
 
@@ -127,30 +127,24 @@ func checkZoom() {
 	_, my := ebiten.Wheel()
 
 	if my < 0 {
-		for i := 0; i < 4 && globalGameState.camera.zoom > 0.5; i++ {
+		for i := 0; i < 4 && game.camera.zoom > 0.5; i++ {
 			time.Sleep(4 * time.Millisecond)
-			globalGameState.camera.zoom -= 0.02
+			game.camera.zoom -= 0.02
 		}
 	} else if my > 0 {
-		for i := 0; i < 4 && globalGameState.camera.zoom < 2.5; i++ {
+		for i := 0; i < 4 && game.camera.zoom < 2.5; i++ {
 			time.Sleep(4 * time.Millisecond)
-			globalGameState.camera.zoom += 0.02
+			game.camera.zoom += 0.02
 		}
 	}
 }
 
-var cursor pos
-
 func checkMovementAndInput() {
-
-	// if ebiten.IsMouseButtonPressed(ebiten.MouseButton0) {
-	// 	parseTexture(cursor)
-	// }
 
 	x, y := ptid(char.pos)
 
 	// Check if the current tile has the value 3
-	if globalGameState.currentmap.data[y][x] == 3 {
+	if game.currentmap.data[y][x] == 3 {
 		// If the character steps on tile 3, start the speed boost timer
 		char.lastSpeedBoostTime = time.Now()
 	}
@@ -167,23 +161,23 @@ func checkMovementAndInput() {
 
 	// Handle movement based on key presses and check next tile for collisions
 	if ebiten.IsKeyPressed(ebiten.KeyD) && checkNextTile(2) { // Move right
-		char.pos.float_x += char.speed * float32(globalGameState.deltatime)
+		char.pos.float_x += char.speed * float32(game.deltatime)
 		char.running = true
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) && checkNextTile(3) { // Move left
-		char.pos.float_x -= char.speed * float32(globalGameState.deltatime)
+		char.pos.float_x -= char.speed * float32(game.deltatime)
 		char.running = true
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyW) && checkNextTile(0) { // Move up
-		char.pos.float_y -= char.speed * float32(globalGameState.deltatime)
+		char.pos.float_y -= char.speed * float32(game.deltatime)
 		char.running = true
 		char.facingFront = false
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyS) && checkNextTile(1) { // Move down
-		char.pos.float_y += char.speed * float32(globalGameState.deltatime)
+		char.pos.float_y += char.speed * float32(game.deltatime)
 		char.running = true
 		char.facingFront = true
 	}
@@ -198,9 +192,9 @@ func checkMovementAndInput() {
 		}
 
 		if elapsed < time.Duration(char.dashDuration)*time.Millisecond/2 {
-			globalGameState.camera.zoom += 0.003
+			game.camera.zoom += 0.003
 		} else {
-			globalGameState.camera.zoom -= 0.003
+			game.camera.zoom -= 0.003
 		}
 	}
 

@@ -22,7 +22,9 @@ var (
 
 func gameinit() {
 
-	load()
+	loadChar()
+	loadEnemy()
+
 	readMapData()
 	parseTextureAndSprites()
 
@@ -37,15 +39,87 @@ func gameinit() {
 	char.pos.float_y = screenHeight / 2
 	char.pos.float_x = screenWidth / 2
 
-	globalGameState.camera.zoom = 1
+	game.camera.zoom = 1
 
 }
 
+type gamemap struct {
+	// map data (2D array)
+	//
+	// 0 = not decided, 1 = mountains, 2 = plains, 3 = dry
+	data    [100][150]int
+	texture [100][150]*ebiten.Image
+
+	// height of the map
+	//
+	//used for rendering and generating the map
+	height int
+	width  int
+
+	sprites []sprite
+}
+
+// read more in gamestate
+type camera struct {
+	pos pos
+
+	//used in rendering and collision checking
+	zoom float32
+}
+
+type sprite struct {
+	typeOf  int
+	pos     pos
+	texture *ebiten.Image
+}
+
+func offsetsx(tobeoffset float32) float32 {
+	return ((tobeoffset+game.camera.pos.float_x)*game.camera.zoom + screenWidth/2)
+}
+func offsetsy(tobeoffset float32) float32 {
+	return ((tobeoffset+game.camera.pos.float_y)*game.camera.zoom + screenHeight/2)
+
+}
+
+func updateCamera() {
+	game.camera.pos.float_x = char.pos.float_x * -1
+	game.camera.pos.float_y = char.pos.float_y * -1
+}
+
+var game Game
+
 type Game struct {
+	// 0 menu / 1 menu and options / 3 in game
+	stateid int
+
+	// maps are stored in arrays (see in type map)
+	//
+	// this is the current map that is  being used//while rendered map array size is constant to 144 (16*9) currentmapid is not
+	currentmap gamemap
+
+	// counts the time since start of game
+	//
+	// get updated every frame
+	deltatime float64
+
+	// date of last update
+	lastUpdateTime time.Time
+
+	// contains the camera positions
+	//
+	// this is used in the rendering, it offsets the drawing positions
+	camera camera
 }
 
 // Update method of the Game
 func (g *Game) Update() error {
+
+	updateCamera()
+	updatePositions()
+	sortDrawablesByY()
+	curspos.updatemouse()
+	go checkZoom()
+
 	return nil
 }
 
@@ -63,29 +137,27 @@ var (
 func (g *Game) Draw(screen *ebiten.Image) {
 
 	now := time.Now()
-	globalGameState.deltatime = now.Sub(globalGameState.lastUpdateTime).Seconds()
-	globalGameState.lastUpdateTime = now
+	game.deltatime = now.Sub(game.lastUpdateTime).Seconds()
+	game.lastUpdateTime = now
 
-	curspos.updatemouse()
-
-	switch globalGameState.stateid {
+	switch game.stateid {
 	case 0:
 
 		playbtn.DrawButton(screen)
 		if playbtn.pressed {
-			globalGameState.stateid = 3
+			game.stateid = 3
 		}
 
 		optionsbtn.DrawButton(screen)
 		if optionsbtn.pressed {
-			globalGameState.stateid = 1
+			game.stateid = 1
 		}
 
 	case 1:
 
 		options_exitbtn.DrawButton(screen)
 		if options_exitbtn.pressed {
-			globalGameState.stateid = 0
+			game.stateid = 0
 		}
 
 		vector.DrawFilledRect(screen, 200, 25, screenWidth-250, screenHeight-50, uidarkgray, false)
@@ -93,16 +165,17 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	case 3:
 
-		updateCamera()
-		updatePositions()
-		sortDrawablesByY()
+		drawUi(screen)
 
-		//TODO redo this comment and make this into a function
-		for i := 0; i < globalGameState.currentmap.height; i++ {
-			for j := 0; j < globalGameState.currentmap.width; j++ {
-				if globalGameState.currentmap.texture[i][j] != nil {
+		checkMovementAndInput()
+		updateAnimationCharacter()
+		updateAnimationEnemies()
 
-					drawTile(screen, globalGameState.currentmap.texture[i][j], i, j)
+		for i := 0; i < game.currentmap.height; i++ {
+			for j := 0; j < game.currentmap.width; j++ {
+				if game.currentmap.texture[i][j] != nil {
+
+					drawTile(screen, game.currentmap.texture[i][j], i, j)
 
 				}
 
@@ -110,43 +183,22 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		}
 
-		// for i := 0; i < len(globalGameState.currentmap.sprites); i++ {
-		// fmt.Println(len(currentmap.sprites))
-		// sort.Slice(globalGameState.currentmap.sprites, func(i, j int) bool {
-		// return globalGameState.currentmap.sprites[i].pos.float_y < globalGameState.currentmap.sprites[j].pos.float_y
-		// })
-		// 	drawSprite(screen, globalGameState.currentmap.sprites[i].texture, globalGameState.currentmap.sprites[i].pos)
-		// }
-
 		for i := 0; i < len(drawables); i++ {
-			switch drawables[i].character {
-			case nil:
-				drawSprite(screen, *drawables[i].sprite)
-			default:
+			if drawables[i].character != nil {
+				*drawables[i].character = char
 				char.DrawCharacter(screen)
+			} else if drawables[i].sprite != nil {
+				drawSprite(screen, *drawables[i].sprite)
+			} else if drawables[i].enemy != nil {
+				drawEnemy(screen, *drawables[i].enemy)
 			}
 		}
 
-		go checkZoom()
-
-		checkMovementAndInput()
-		updateAnimationCharacter()
-
-		for i := 0; i < len(enemies); i++ {
-			enemies[i].Draw(screen)
-		}
-
-		// var op *ebiten.DrawImageOptions
-		// screen.DrawImage(cutCam(screen, createPos(30, 30)), op)
-
-		drawUi(screen)
 	}
 
 	fps := ebiten.CurrentFPS()
 	fpsText := fmt.Sprintf("FPS: %.2f", fps)
 	ebitenutil.DebugPrint(screen, fpsText)
-
-	fmt.Println(drawables)
 }
 
 // Layout method of the Game

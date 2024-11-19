@@ -1,23 +1,34 @@
 package main
 
 import (
-	"image"
-	"image/png"
-	"log"
 	"math"
-	"os"
+	"math/rand/v2"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
+
+var enemyAnimations [1][6]*ebiten.Image
+var globalAC int
+
+func loadEnemy() {
+	enemyAnimations[0][0] = loadPNG("import/Characters/Enemy/enemyidle1.png")
+	enemyAnimations[0][1] = loadPNG("import/Characters/Enemy/enemyidle2.png")
+	enemyAnimations[0][2] = loadPNG("import/Characters/Enemy/enemyidle3.png")
+	enemyAnimations[0][3] = loadPNG("import/Characters/Enemy/enemyidle4.png")
+	enemyAnimations[0][4] = loadPNG("import/Characters/Enemy/enemyidle1.png")
+	enemyAnimations[0][5] = loadPNG("import/Characters/Enemy/enemyidle2.png")
+	enemyAnimations[0][5] = loadPNG("import/Characters/Enemy/enemyidle2.png")
+}
 
 // Contains all information about the enemies
 type enemy struct {
 	id          int
 	title       string
 	pos         pos
-	picture     *ebiten.Image
 	curtiletype int
 	hp          int
+
+	animationCycle int
 }
 
 var (
@@ -25,54 +36,44 @@ var (
 )
 
 // Returns a new enemy with the given title and path to the picture
-func createEnemy(path, title string, id int) enemy {
+func createEnemy(title string, id int) enemy {
 	var e enemy
 	e.title = title
 	e.id = id
 
-	// Open the image file
-	file, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	// Decode the image file into an image.Image
-	imgData, err := png.Decode(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Convert the image.Image to an *ebiten.Image
-	e.picture = ebiten.NewImageFromImage(imgData)
+	e.animationCycle = int(rand.Int32N(5))
 
 	return e
 }
 
-func (e enemy) Draw(screen *ebiten.Image) {
+func drawEnemy(screen *ebiten.Image, e enemy) {
 	op := &ebiten.DrawImageOptions{}
-	camera := globalGameState.camera.pos
-
+	t := enemyAnimations[0][(e.animationCycle+globalAC)%6]
 	// Set up scaling
-	originalWidth, originalHeight := e.picture.Size()
-	scaleX := float64(screendivisor) / float64(originalWidth)
-	scaleY := float64(screendivisor) / float64(originalHeight)
+	originalWidth, originalHeight := t.Size()
+	scaleX := float64(screendivisor) / float64(originalWidth) * float64(game.camera.zoom)
+	scaleY := float64(screendivisor) / float64(originalHeight) * float64(game.camera.zoom)
 	op.GeoM.Scale(scaleX, scaleY)
 
 	// Positioning with respect to camera
 	op.GeoM.Translate(
-		float64(e.pos.float_x+screenWidth/2+camera.float_x)-float64(intscreendivisor)/2,
-		float64(e.pos.float_y+screenHeight/2+camera.float_y)-float64(intscreendivisor)/2,
+		float64(offsetsx(e.pos.float_y)),
+		float64(offsetsy(e.pos.float_x)),
 	)
 
-	// Define a dynamic rectangle to select a portion of the image
-	// Adjust (x0, y0, x1, y1) as needed to control the area drawn
-	x0, y0 := 0, 0
-	x1, y1 := 10, 10 // These values could change based on the enemy's position, animation frame, etc.
-	tile := ebiten.NewImageFromImage(e.picture.SubImage(image.Rect(x0, y0, x1, y1)))
-
 	// Draw the selected portion of the image onto the screen
-	screen.DrawImage(tile, op)
+	screen.DrawImage(t, op)
+}
+
+var globalAnimationTimer float64
+
+func updateAnimationEnemies() {
+	globalAnimationTimer += game.deltatime
+	if globalAnimationTimer >= 0.45 {
+		globalAC++
+		globalAnimationTimer = 0.0
+	}
+
 }
 
 func (e *enemy) Die() {
@@ -106,11 +107,11 @@ func (e *enemy) Hurt(enemyPos pos) {
 	e.pos.float_y += directionY * moveAmount
 }
 
-// func init() {
-// 	enemies = append(enemies, createEnemy("enemy.png", "Enemy 1", 0))
-// 	enemies[0].pos = createPos(60, 60)
-// 	enemies = append(enemies, createEnemy("enemy.png", "Enemy 2", 1))
-// 	enemies[1].pos = createPos(120, 90)
-// 	enemies = append(enemies, createEnemy("enemy.png", "Enemy 3", 2))
-// 	enemies[2].pos = createPos(60, 270)
-// }
+func init() {
+	enemies = append(enemies, createEnemy("Enemy 1", 0))
+	enemies[0].pos = createPos(400, 400)
+	enemies = append(enemies, createEnemy("Enemy 2", 1))
+	enemies[1].pos = createPos(300, 300)
+	enemies = append(enemies, createEnemy("Enemy 3", 2))
+	enemies[2].pos = createPos(700, 700)
+}

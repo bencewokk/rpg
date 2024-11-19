@@ -62,32 +62,32 @@ func parseTextureAndSprites() {
 		Grass_S1, Grass_S2, Grass_S3, Grass_S6, Grass_S8, Grass_S4, Grass_S5, Grass_S7,
 	}
 
-	for i := 0; i < globalGameState.currentmap.height; i++ {
-		for j := 0; j < globalGameState.currentmap.width; j++ {
+	for i := 0; i < game.currentmap.height; i++ {
+		for j := 0; j < game.currentmap.width; j++ {
 
 			var textureID string = ""
 
-			if globalGameState.currentmap.data[i][j] == 3 {
+			if game.currentmap.data[i][j] == 3 {
 				// Check for out-of-bounds for each neighboring tile
-				if globalGameState.currentmap.data[i-1][j] == 3 { // upper
+				if game.currentmap.data[i-1][j] == 3 { // upper
 					textureID += "D"
 				} else {
 					textureID += "G"
 				}
 
-				if globalGameState.currentmap.data[i][j-1] == 3 { // left
+				if game.currentmap.data[i][j-1] == 3 { // left
 					textureID += "D"
 				} else {
 					textureID += "G"
 				}
 
-				if globalGameState.currentmap.data[i][j+1] == 3 { // right
+				if game.currentmap.data[i][j+1] == 3 { // right
 					textureID += "D"
 				} else {
 					textureID += "G"
 				}
 
-				if globalGameState.currentmap.data[i+1][j] == 3 { // lower
+				if game.currentmap.data[i+1][j] == 3 { // lower
 					textureID += "D"
 				} else {
 					textureID += "G"
@@ -95,19 +95,19 @@ func parseTextureAndSprites() {
 
 				// Assign the appropriate texture based on the ID
 				if texture, exists := dryTransitionsTextures[textureID]; exists {
-					globalGameState.currentmap.texture[i][j] = texture
+					game.currentmap.texture[i][j] = texture
 				}
-			} else if globalGameState.currentmap.data[i][j] == 2 {
+			} else if game.currentmap.data[i][j] == 2 {
 				if calcChance(10) {
-					globalGameState.currentmap.texture[i][j] = grassTextures[rand.Int31n(5)]
+					game.currentmap.texture[i][j] = grassTextures[rand.Int31n(5)]
 				} else {
-					globalGameState.currentmap.texture[i][j] = grassTextures[rand.Int31n(3)+5]
+					game.currentmap.texture[i][j] = grassTextures[rand.Int31n(3)+5]
 				}
 			}
 		}
 	}
 
-	globalGameState.currentmap.sprites = append(globalGameState.currentmap.sprites, createSprite(createPos(1500, 400), 0))
+	game.currentmap.sprites = append(game.currentmap.sprites, createSprite(createPos(1500, 400), 0))
 
 }
 
@@ -131,7 +131,7 @@ func drawSprite(screen *ebiten.Image, s sprite) {
 	t := s.texture
 	op := &ebiten.DrawImageOptions{}
 
-	op.GeoM.Scale(float64(globalGameState.camera.zoom)*1.7, float64(globalGameState.camera.zoom)*1.7)
+	op.GeoM.Scale(float64(game.camera.zoom)*1.7, float64(game.camera.zoom)*1.7)
 
 	op.GeoM.Translate(
 		float64(offsetsx(pos.float_x)),
@@ -144,8 +144,8 @@ func drawTile(screen, t *ebiten.Image, i, j int) {
 	op := &ebiten.DrawImageOptions{}
 
 	originalWidth, originalHeight := t.Size()
-	scaleX := float64(screendivisor) / float64(originalWidth) * float64(globalGameState.camera.zoom)
-	scaleY := float64(screendivisor) / float64(originalHeight) * float64(globalGameState.camera.zoom)
+	scaleX := float64(screendivisor) / float64(originalWidth) * float64(game.camera.zoom)
+	scaleY := float64(screendivisor) / float64(originalHeight) * float64(game.camera.zoom)
 	op.GeoM.Scale(scaleX, scaleY)
 
 	op.GeoM.Translate(

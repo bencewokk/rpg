@@ -62,7 +62,7 @@ func readMapData() {
 
 			// Create the sprite and add it to the map
 			sprite := createSprite(createPos(float32(floatX), float32(floatY)), typeOf)
-			globalGameState.currentmap.sprites = append(globalGameState.currentmap.sprites, sprite)
+			game.currentmap.sprites = append(game.currentmap.sprites, sprite)
 		} else {
 			// Process map data
 			values := strings.Split(line, ",")
@@ -78,14 +78,14 @@ func readMapData() {
 					return
 				}
 
-				globalGameState.currentmap.data[y][x] = intValue
+				game.currentmap.data[y][x] = intValue
 			}
 			y++
 		}
 	}
 
-	globalGameState.currentmap.height = 100
-	globalGameState.currentmap.width = 150
+	game.currentmap.height = 100
+	game.currentmap.width = 150
 
 	// Check for any errors encountered during scanning
 	if err := scanner.Err(); err != nil {

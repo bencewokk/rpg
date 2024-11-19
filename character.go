@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"time"
 
@@ -16,16 +17,7 @@ const (
 // Global variable for player
 var char character = createCharacter("character")
 
-// Load all animations
-//
-// 0 FRONT IDLE
-//
-// 1 BACK IDLE
-//
-// 2 FRONT RUNNING
-//
-// 3 BACK RUNNING
-func load() {
+func loadChar() {
 	char.allAnimations[0] = append(char.allAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle.png"))
 	char.allAnimations[0] = append(char.allAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S2.png"))
 	char.allAnimations[0] = append(char.allAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S3.png"))
@@ -100,9 +92,8 @@ func createCharacter(title string) character {
 
 var animationTimer float64
 
-// Updates animation on global character
 func updateAnimationCharacter() {
-	animationTimer += globalGameState.deltatime
+	animationTimer += game.deltatime
 
 	if char.dashing {
 		animationTimer += 0.01
@@ -119,6 +110,8 @@ func updateAnimationCharacter() {
 			}
 		}
 
+		fmt.Println(char.currentAnimationState_primary)
+
 		char.currentAnimationState_primary = (char.currentAnimationState_primary + 1) % 6
 		char.picture = char.allAnimations[char.currentAnimationState_secondary][char.currentAnimationState_primary]
 		animationTimer = 0.0
@@ -132,8 +125,8 @@ func (c *character) DrawCharacter(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 
 	originalWidth, originalHeight := c.picture.Size()
-	scaleX := float64(screendivisor) / float64(originalWidth) * float64(globalGameState.camera.zoom)
-	scaleY := float64(screendivisor) / float64(originalHeight) * float64(globalGameState.camera.zoom)
+	scaleX := float64(screendivisor) / float64(originalWidth) * float64(game.camera.zoom)
+	scaleY := float64(screendivisor) / float64(originalHeight) * float64(game.camera.zoom)
 	op.GeoM.Scale(scaleX, scaleY)
 
 	// Calculate the centered position based on screen dimensions and zoom level
