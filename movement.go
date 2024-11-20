@@ -8,12 +8,12 @@ import (
 )
 
 // 0 up, 1 down, 2 right, 3 left
-func checkNextTile(way int) bool {
+func (c *character) checkNextTile(way int) bool {
 
 	//camera := game.camera
 
-	charx := (char.pos.float_x)
-	chary := (char.pos.float_y)
+	charx := (c.pos.float_x)
+	chary := (c.pos.float_y)
 
 	//top left corner
 	topleftx, toplefty := charx, chary
@@ -139,80 +139,28 @@ func checkZoom() {
 	}
 }
 
-func checkMovementAndInput() {
-
-	x, y := ptid(char.pos)
-
-	// Check if the current tile has the value 3
-	if game.currentmap.data[y][x] == 3 {
-		// If the character steps on tile 3, start the speed boost timer
-		char.lastSpeedBoostTime = time.Now()
-	}
-
-	// Check if the speed boost duration has expired
-	if !char.dashing {
-		if time.Since(char.lastSpeedBoostTime) <= 500*time.Millisecond {
-			char.speed = ONDRYSPEED // Maintain boosted speed
-		} else {
-			char.speed = NORMALSPEED // Revert to default speed
-		}
-
-	}
+func (c *character) checkMovement() {
 
 	// Handle movement based on key presses and check next tile for collisions
-	if ebiten.IsKeyPressed(ebiten.KeyD) && checkNextTile(2) { // Move right
-		char.pos.float_x += char.speed * float32(game.deltatime)
-		char.running = true
+	if ebiten.IsKeyPressed(ebiten.KeyD) && c.checkNextTile(2) { // Move right
+		c.pos.float_x += c.speed * float32(game.deltatime)
+		c.running = true
+
 	}
+	if ebiten.IsKeyPressed(ebiten.KeyA) && c.checkNextTile(3) { // Move left
+		c.pos.float_x -= c.speed * float32(game.deltatime)
+		c.running = true
 
-	if ebiten.IsKeyPressed(ebiten.KeyA) && checkNextTile(3) { // Move left
-		char.pos.float_x -= char.speed * float32(game.deltatime)
-		char.running = true
 	}
-
-	if ebiten.IsKeyPressed(ebiten.KeyW) && checkNextTile(0) { // Move up
-		char.pos.float_y -= char.speed * float32(game.deltatime)
-		char.running = true
-		char.facingFront = false
+	if ebiten.IsKeyPressed(ebiten.KeyW) && c.checkNextTile(0) { // Move up
+		c.pos.float_y -= c.speed * float32(game.deltatime)
+		c.running = true
+		c.facingNorth = 1
 	}
-
-	if ebiten.IsKeyPressed(ebiten.KeyS) && checkNextTile(1) { // Move down
-		char.pos.float_y += char.speed * float32(game.deltatime)
-		char.running = true
-		char.facingFront = true
-	}
-
-	// Handle dash timing and cooldown
-	if char.dashing {
-		elapsed := time.Since(char.dashStart)
-		if elapsed > time.Duration(char.dashDuration)*time.Millisecond {
-			char.dashing = false
-			char.speed = NORMALSPEED   // Reset speed after dash ends
-			char.lastDash = time.Now() // Record end time for cooldown tracking
-		}
-
-		if elapsed < time.Duration(char.dashDuration)*time.Millisecond/2 {
-			game.camera.zoom += 0.003
-		} else {
-			game.camera.zoom -= 0.003
-		}
-	}
-
-	// Check if dash key is pressed and dash is not already active
-	if ebiten.IsKeyPressed(ebiten.KeyShift) && !char.dashing {
-		char.Dash()
-	}
-
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButton0) {
-		//fmt.Println("attacking")
-	}
-
-	// Check for collisions with enemies
-	for i := range enemies {
-		if checkCollision(char.pos, enemies[i].pos) {
-			char.Hurt(enemies[i].pos)
-			enemies[i].Hurt(char.pos)
-		}
+	if ebiten.IsKeyPressed(ebiten.KeyS) && c.checkNextTile(1) { // Move down
+		c.pos.float_y += c.speed * float32(game.deltatime)
+		c.running = true
+		c.facingNorth = 0
 	}
 
 }

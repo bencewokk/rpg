@@ -1,50 +1,51 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+var (
+	DDDDD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DDDD.png")
+	DDDDG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DDDG.png")
+	DDDGD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DDGD.png")
+	DDDGG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DDGG.png")
+	DDGDD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DGDD.png")
+	DDGDG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DGDG.png")
+	DDGGD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DGGD.png")
+	DDGGG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DGGG.png")
+	DGDDD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GDDD.png")
+	DGDDG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GDDG.png")
+	DGDGD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GDGD.png")
+	DGDGG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GDGG.png")
+	DGGDD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GGDD.png")
+	DGGDG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GGDG.png")
+	DGGGD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GGGD.png")
+	DGGGG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GGGG.png")
+)
+
+var dryTransitionsTextures = map[string]*ebiten.Image{
+	"DDDD": DDDDD,
+	"DDDG": DDDDG,
+	"DDGD": DDDGD,
+	"DDGG": DDDGG,
+	"DGDD": DDGDD,
+	"DGDG": DDGDG,
+	"DGGD": DDGGD,
+	"DGGG": DDGGG,
+	"GDDD": DGDDD,
+	"GDDG": DGDDG,
+	"GDGD": DGDGD,
+	"GDGG": DGDGG,
+	"GGDD": DGGDD,
+	"GGDG": DGGDG,
+	"GGGD": DGGGD,
+	"GGGG": DGGGG,
+}
+
 func parseTextureAndSprites() {
-
-	var (
-		DDDDD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DDDD.png")
-		DDDDG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DDDG.png")
-		DDDGD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DDGD.png")
-		DDDGG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DDGG.png")
-		DDGDD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DGDD.png")
-		DDGDG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DGDG.png")
-		DDGGD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DGGD.png")
-		DDGGG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_DGGG.png")
-		DGDDD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GDDD.png")
-		DGDDG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GDDG.png")
-		DGDGD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GDGD.png")
-		DGDGG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GDGG.png")
-		DGGDD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GGDD.png")
-		DGGDG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GGDG.png")
-		DGGGD *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GGGD.png")
-		DGGGG *ebiten.Image = loadPNG("import/tiles/Dry2Grass_GGGG.png")
-	)
-
-	var dryTransitionsTextures = map[string]*ebiten.Image{
-		"DDDD": DDDDD,
-		"DDDG": DDDDG,
-		"DDGD": DDDGD,
-		"DDGG": DDDGG,
-		"DGDD": DDGDD,
-		"DGDG": DDGDG,
-		"DGGD": DDGGD,
-		"DGGG": DDGGG,
-		"GDDD": DGDDD,
-		"GDDG": DGDDG,
-		"GDGD": DGDGD,
-		"GDGG": DGDGG,
-		"GGDD": DGGDD,
-		"GGDG": DGGDG,
-		"GGGD": DGGGD,
-		"GGGG": DGGGG,
-	}
 
 	var (
 		Grass_S1 *ebiten.Image = loadPNG("import/tiles/Grass_S1.png")
@@ -106,50 +107,68 @@ func parseTextureAndSprites() {
 			}
 		}
 	}
-
-	game.currentmap.sprites = append(game.currentmap.sprites, createSprite(createPos(1500, 400), 0))
-
 }
+
+var trees = []*ebiten.Image{tree_S1, tree_S2}
 
 var (
 	tree_S1 *ebiten.Image = loadPNG("import/prop/tree1.png")
 	tree_S2 *ebiten.Image = loadPNG("import/prop/tree2.png")
 )
 
-var trees = []*ebiten.Image{tree_S1, tree_S2}
+var characterAnimations [4][]*ebiten.Image
 
-func createSprite(pos pos, typeOf int) sprite {
-	var texture *ebiten.Image
-	if typeOf == 0 {
-		texture = trees[rand.Intn(len(trees))]
+func loadChar() {
+
+	characterAnimations[0] = append(characterAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle.png"))
+	characterAnimations[0] = append(characterAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S2.png"))
+	characterAnimations[0] = append(characterAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S3.png"))
+	characterAnimations[0] = append(characterAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S4.png"))
+	characterAnimations[0] = append(characterAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S5.png"))
+	characterAnimations[0] = append(characterAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S6.png"))
+	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle.png"))
+	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle_S2.png"))
+	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle_S3.png"))
+	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle_S4.png"))
+	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle_S5.png"))
+	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle_S6.png"))
+	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running.png"))
+	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S2.png"))
+	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S3.png"))
+	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S4.png"))
+	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S5.png"))
+	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S6.png"))
+	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running.png"))
+	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running_S2.png"))
+	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running_S3.png"))
+	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running_S4.png"))
+	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running_S5.png"))
+	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running_S6.png"))
+}
+
+var enemyAnimations [1][6]*ebiten.Image
+
+func loadEnemy() {
+	enemyAnimations[0][0] = loadPNG("import/Characters/Enemy/enemyidle1.png")
+	enemyAnimations[0][1] = loadPNG("import/Characters/Enemy/enemyidle2.png")
+	enemyAnimations[0][2] = loadPNG("import/Characters/Enemy/enemyidle3.png")
+	enemyAnimations[0][3] = loadPNG("import/Characters/Enemy/enemyidle4.png")
+	enemyAnimations[0][4] = loadPNG("import/Characters/Enemy/enemyidle1.png")
+	enemyAnimations[0][5] = loadPNG("import/Characters/Enemy/enemyidle2.png")
+	enemyAnimations[0][5] = loadPNG("import/Characters/Enemy/enemyidle2.png")
+}
+
+var (
+	animationTimer float64
+	animationCycle int
+)
+
+func updateAnimationCycle() {
+	animationTimer += game.deltatime
+
+	if animationTimer > 0.13 {
+		animationCycle++
+		fmt.Println(animationCycle)
+		animationTimer = 0
 	}
-	return sprite{pos: pos, texture: texture, typeOf: typeOf}
-}
-
-func drawSprite(screen *ebiten.Image, s sprite) {
-	pos := s.pos
-	t := s.texture
-	op := &ebiten.DrawImageOptions{}
-
-	op.GeoM.Scale(float64(game.camera.zoom)*1.7, float64(game.camera.zoom)*1.7)
-
-	op.GeoM.Translate(
-		float64(offsetsx(pos.float_x)),
-		float64(offsetsy(pos.float_y)))
-	screen.DrawImage(t, op)
-
-}
-
-func drawTile(screen, t *ebiten.Image, i, j int) {
-	op := &ebiten.DrawImageOptions{}
-
-	originalWidth, originalHeight := t.Size()
-	scaleX := float64(screendivisor) / float64(originalWidth) * float64(game.camera.zoom)
-	scaleY := float64(screendivisor) / float64(originalHeight) * float64(game.camera.zoom)
-	op.GeoM.Scale(scaleX, scaleY)
-
-	op.GeoM.Translate(
-		float64(offsetsx(float32(j*intscreendivisor-intscreendivisor/2))),
-		float64(offsetsy(float32(i*intscreendivisor-intscreendivisor/2))))
-	screen.DrawImage(t, op)
 }

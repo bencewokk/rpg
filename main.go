@@ -22,22 +22,22 @@ var (
 
 func gameinit() {
 
-	loadChar()
-	loadEnemy()
-
 	readMapData()
 	parseTextureAndSprites()
-
-	addAllToDrawables()
 
 	ebiten.SetFullscreen(true)
 	ebiten.SetWindowTitle("rpg")
 
+	createCharacter()
+	createEnemy(createPos(500, 500))
+
+	loadChar()
+	fmt.Println(enemyAnimations)
+	loadEnemy()
+	fmt.Println(enemyAnimations)
+
 	screendivisor = 30
 	intscreendivisor = 30
-
-	char.pos.float_y = screenHeight / 2
-	char.pos.float_x = screenWidth / 2
 
 	game.camera.zoom = 1
 
@@ -67,23 +67,12 @@ type camera struct {
 	zoom float32
 }
 
-type sprite struct {
-	typeOf  int
-	pos     pos
-	texture *ebiten.Image
-}
-
 func offsetsx(tobeoffset float32) float32 {
-	return ((tobeoffset+game.camera.pos.float_x)*game.camera.zoom + screenWidth/2)
+	return ((tobeoffset-game.camera.pos.float_x)*game.camera.zoom + screenWidth/2)
 }
 func offsetsy(tobeoffset float32) float32 {
-	return ((tobeoffset+game.camera.pos.float_y)*game.camera.zoom + screenHeight/2)
+	return ((tobeoffset-game.camera.pos.float_y)*game.camera.zoom + screenHeight/2)
 
-}
-
-func updateCamera() {
-	game.camera.pos.float_x = char.pos.float_x * -1
-	game.camera.pos.float_y = char.pos.float_y * -1
 }
 
 var game Game
@@ -114,11 +103,10 @@ type Game struct {
 // Update method of the Game
 func (g *Game) Update() error {
 
-	updateCamera()
-	updatePositions()
-	sortDrawablesByY()
 	curspos.updatemouse()
 	go checkZoom()
+
+	updateAnimationCycle()
 
 	return nil
 }
@@ -165,35 +153,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	case 3:
 
-		drawUi(screen)
-
-		checkMovementAndInput()
-		updateAnimationCharacter()
-		updateAnimationEnemies()
-
 		for i := 0; i < game.currentmap.height; i++ {
 			for j := 0; j < game.currentmap.width; j++ {
 				if game.currentmap.texture[i][j] != nil {
-
 					drawTile(screen, game.currentmap.texture[i][j], i, j)
 
 				}
-
 			}
-
 		}
 
 		for i := 0; i < len(drawables); i++ {
-			if drawables[i].character != nil {
-				*drawables[i].character = char
-				char.DrawCharacter(screen)
-			} else if drawables[i].sprite != nil {
-				drawSprite(screen, *drawables[i].sprite)
-			} else if drawables[i].enemy != nil {
-				drawEnemy(screen, *drawables[i].enemy)
-			}
+			drawables[i].draw(screen)
 		}
 
+		// end of gameloop
 	}
 
 	fps := ebiten.CurrentFPS()
