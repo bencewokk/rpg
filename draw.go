@@ -10,7 +10,7 @@ var drawables []drawable
 
 type drawable interface {
 	draw(sceen *ebiten.Image)
-	pos()
+	floatY() float32
 }
 
 func drawTile(screen, t *ebiten.Image, i, j int) {
@@ -26,7 +26,7 @@ func drawTile(screen, t *ebiten.Image, i, j int) {
 		float64(offsetsy(float32(i*intscreendivisor-intscreendivisor/2))))
 	screen.DrawImage(t, op)
 }
-s
+
 func (e *enemy) draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 
@@ -48,21 +48,15 @@ func (e *enemy) draw(screen *ebiten.Image) {
 	screen.DrawImage(e.texture, op)
 }
 
-type sprite struct {
-	typeOf  int
-	pos     pos
-	texture *ebiten.Image
-}
-
-func (s *sprite) draw(screen *ebiten.Image) {
+func (t *tree) draw(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 
 	op.GeoM.Scale(float64(game.camera.zoom)*1.7, float64(game.camera.zoom)*1.7)
 
 	op.GeoM.Translate(
-		float64(offsetsx(s.pos.float_x)),
-		float64(offsetsy(s.pos.float_y)))
-	screen.DrawImage(s.texture, op)
+		float64(offsetsx(t.pos.float_x)),
+		float64(offsetsy(t.pos.float_y)))
+	screen.DrawImage(t.texture, op)
 
 }
 
@@ -84,8 +78,26 @@ func (c *character) draw(screen *ebiten.Image) {
 	screen.DrawImage(c.texture, op)
 }
 
+func (c *character) floatY() float32 {
+	return c.pos.float_y
+}
+
+func (t *tree) floatY() float32 {
+	switch t.treeId {
+	case 0:
+		return t.pos.float_y + 95
+	case 1:
+		return t.pos.float_y + 102
+	}
+	return t.pos.float_y
+}
+
+func (e *enemy) floatY() float32 {
+	return e.pos.float_y + 16
+}
+
 func sortDrawables() {
 	sort.Slice(drawables, func(a, b int) bool {
-		return drawables[a].pos.float_y < drawables[b].pos.float_y
+		return drawables[a].floatY() < drawables[b].floatY()
 	})
 }

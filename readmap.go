@@ -34,35 +34,35 @@ func readMapData() {
 
 		// Process sprite data
 		if isReadingSprites {
-			// 	// Split sprite data by commas
-			// 	values := strings.Split(line, ",")
-			// 	if len(values) != 3 {
-			// 		fmt.Println("Invalid sprite data:", line)
-			// 		continue
-			// 	}
+			// Split sprite data by commas
+			values := strings.Split(line, ",")
+			if len(values) != 3 {
+				fmt.Println("Invalid sprite data:", line)
+				continue
+			}
 
-			// 	// Parse the values for the sprite
-			// 	typeOf, err := strconv.Atoi(strings.TrimSpace(values[0]))
-			// 	if err != nil {
-			// 		fmt.Println("Error parsing sprite type:", err)
-			// 		continue
-			// 	}
+			// Parse the values for the sprite
+			typeOf, err := strconv.Atoi(strings.TrimSpace(values[0]))
+			if err != nil {
+				fmt.Println("Error parsing sprite type:", err)
+				continue
+			}
 
-			// 	floatX, err := strconv.ParseFloat(strings.TrimSpace(values[1]), 32)
-			// 	if err != nil {
-			// 		fmt.Println("Error parsing sprite X position:", err)
-			// 		continue
-			// 	}
+			floatX, err := strconv.ParseFloat(strings.TrimSpace(values[1]), 32)
+			if err != nil {
+				fmt.Println("Error parsing sprite X position:", err)
+				continue
+			}
 
-			// 	floatY, err := strconv.ParseFloat(strings.TrimSpace(values[2]), 32)
-			// 	if err != nil {
-			// 		fmt.Println("Error parsing sprite Y position:", err)
-			// 		continue
-			// 	}
+			floatY, err := strconv.ParseFloat(strings.TrimSpace(values[2]), 32)
+			if err != nil {
+				fmt.Println("Error parsing sprite Y position:", err)
+				continue
+			}
 
-			// 	// Create the sprite and add it to the map
-			// 	sprite := createSprite(createPos(float32(floatX), float32(floatY)), typeOf)
-			// 	game.currentmap.sprites = append(game.currentmap.sprites, sprite)
+			// Create the sprite and add it to the map
+			createSprite(createPos(float32(floatX), float32(floatY)), typeOf)
+
 		} else {
 			// Process map data
 			values := strings.Split(line, ",")

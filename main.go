@@ -55,8 +55,6 @@ type gamemap struct {
 	//used for rendering and generating the map
 	height int
 	width  int
-
-	sprites []sprite
 }
 
 // read more in gamestate
@@ -152,12 +150,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		testslider.DrawSlider(screen)
 
 	case 3:
+		sortDrawables()
 
 		for i := 0; i < game.currentmap.height; i++ {
 			for j := 0; j < game.currentmap.width; j++ {
 				if game.currentmap.texture[i][j] != nil {
 					drawTile(screen, game.currentmap.texture[i][j], i, j)
-
 				}
 			}
 		}
@@ -166,7 +164,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			drawables[i].draw(screen)
 		}
 
-		// end of gameloop
 	}
 
 	fps := ebiten.CurrentFPS()

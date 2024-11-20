@@ -6,6 +6,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const (
+	CHARSPEED  = 200
+	DASHSPEED  = 600
+	BOOSTSPEED = 300
+)
+
 type character struct {
 	id      int
 	pos     pos
@@ -17,13 +23,19 @@ type character struct {
 
 	running     bool
 	facingNorth int // between 0 and 1
+
+	untilNewDash   float64
+	untilEndOfDash float64
+	dashing        bool
+
+	untilEndOfBoost float64
 }
 
 func createCharacter() {
 	var c character
 
 	c.pos = createPos(screenWidth/2, screenHeight/2)
-	c.speed = 200
+	c.speed = CHARSPEED
 
 	c.offsetForAnimation = rand.IntN(5)
 
@@ -48,5 +60,4 @@ func (c *character) todoCharacter() {
 	c.checkMovement()
 	c.updateCamera()
 	c.updateAnimation()
-
 }

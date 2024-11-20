@@ -128,12 +128,12 @@ func checkZoom() {
 
 	if my < 0 {
 		for i := 0; i < 4 && game.camera.zoom > 0.5; i++ {
-			time.Sleep(4 * time.Millisecond)
+			time.Sleep(30 * time.Millisecond)
 			game.camera.zoom -= 0.02
 		}
 	} else if my > 0 {
 		for i := 0; i < 4 && game.camera.zoom < 2.5; i++ {
-			time.Sleep(4 * time.Millisecond)
+			time.Sleep(30 * time.Millisecond)
 			game.camera.zoom += 0.02
 		}
 	}
@@ -163,4 +163,31 @@ func (c *character) checkMovement() {
 		c.facingNorth = 0
 	}
 
+	if ebiten.IsKeyPressed(ebiten.KeyShift) {
+		if !c.dashing && c.untilNewDash < 0 {
+			c.dashing = true
+			c.speed = DASHSPEED
+			c.untilEndOfDash = 0.5 // Set the dash timer to 0.5 seconds
+		}
+	}
+
+	c.untilNewDash -= game.deltatime
+	c.untilEndOfDash -= game.deltatime
+	if c.untilEndOfDash < 0 && c.dashing {
+		c.dashing = false
+		c.speed = CHARSPEED // Reset speed after dash
+		c.untilNewDash = 3
+	}
+
+	correctedPos := createPos(c.pos.float_x+screendivisor/2, c.pos.float_y+screendivisor/2)
+	x, y := ptid(correctedPos)
+	c.untilEndOfBoost -= game.deltatime
+	if game.currentmap.data[y][x] == 3 && !c.dashing && c.speed != BOOSTSPEED {
+		c.speed = BOOSTSPEED
+		c.untilEndOfBoost = 0.5
+	}
+
+	if c.untilEndOfBoost < 0 && !c.dashing {
+		c.speed = CHARSPEED
+	}
 }
