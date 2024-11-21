@@ -96,6 +96,8 @@ type Game struct {
 	//
 	// this is used in the rendering, it offsets the drawing positions
 	camera camera
+
+	paths []path
 }
 
 // Update method of the Game

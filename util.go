@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"image/png"
 	"log"
+	"math"
 	"math/rand"
 	"os"
 
@@ -60,6 +61,13 @@ var (
 // Standard positioning used for everything
 type pos struct {
 	float_x, float_y float32
+}
+
+// Distance calculates the Euclidean distance between two positions
+func Distance(a, b pos) float32 {
+	dx := float64(b.float_x - a.float_x)
+	dy := float64(b.float_y - a.float_y)
+	return float32(math.Sqrt(dx*dx + dy*dy))
 }
 
 // Button struct definition
