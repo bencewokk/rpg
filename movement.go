@@ -167,7 +167,7 @@ func (c *character) checkMovement() {
 		if !c.dashing && c.untilNewDash < 0 {
 			c.dashing = true
 			c.speed = DASHSPEED
-			c.untilEndOfDash = 0.5 // Set the dash timer to 0.5 seconds
+			c.untilEndOfDash = 0.25 // Set the dash timer to 0.5 seconds
 		}
 	}
 
@@ -185,6 +185,7 @@ func (c *character) checkMovement() {
 	if game.currentmap.data[y][x] == 3 && !c.dashing && c.speed != BOOSTSPEED {
 		c.speed = BOOSTSPEED
 		c.untilEndOfBoost = 0.5
+
 	}
 
 	if c.untilEndOfBoost < 0 && !c.dashing {

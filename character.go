@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	CHARSPEED  = 200
-	DASHSPEED  = 600
-	BOOSTSPEED = 300
+	CHARSPEED  = 150
+	DASHSPEED  = 700
+	BOOSTSPEED = 200
 )
 
 type character struct {
