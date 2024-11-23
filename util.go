@@ -63,7 +63,6 @@ type pos struct {
 	float_x, float_y float32
 }
 
-// Distance calculates the Euclidean distance between two positions
 func Distance(a, b pos) float32 {
 	dx := float64(b.float_x - a.float_x)
 	dy := float64(b.float_y - a.float_y)
@@ -89,11 +88,13 @@ type slider struct {
 	pressed        bool
 	hovered        bool
 	maxval, minval int
-	pressedColor   color.RGBA
-	hoveredColor   color.RGBA
-	inactiveColor  color.RGBA
-	knobpos        pos
-	dragging       bool
+
+	pressedColor  color.RGBA
+	hoveredColor  color.RGBA
+	inactiveColor color.RGBA
+
+	knobpos  pos
+	dragging bool
 }
 
 // ptid calculates and returns the tile coordinates based on the given position.

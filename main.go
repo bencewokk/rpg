@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -32,9 +33,7 @@ func gameinit() {
 	createEnemy(createPos(500, 500))
 
 	loadChar()
-	fmt.Println(enemyAnimations)
 	loadEnemy()
-	fmt.Println(enemyAnimations)
 
 	screendivisor = 30
 	intscreendivisor = 30
@@ -55,6 +54,9 @@ type gamemap struct {
 	//used for rendering and generating the map
 	height int
 	width  int
+
+	paths []path
+	nodes []node
 }
 
 // read more in gamestate
@@ -96,8 +98,6 @@ type Game struct {
 	//
 	// this is used in the rendering, it offsets the drawing positions
 	camera camera
-
-	paths []path
 }
 
 // Update method of the Game
@@ -105,6 +105,16 @@ func (g *Game) Update() error {
 
 	curspos.updatemouse()
 	go checkZoom()
+
+	if optionsbtn.pressed {
+		game.stateid = 1
+	}
+	if options_exitbtn.pressed {
+		game.stateid = 0
+	}
+	if playbtn.pressed {
+		game.stateid = 3
+	}
 
 	updateAnimationCycle()
 
@@ -121,8 +131,12 @@ var (
 	testslider      = createSlider("testslider", 500, 20, 5, 10, uigray, uilightgray, uigray, createPos(230, 80))
 )
 
+var screenGlobal *ebiten.Image
+
 // Draw method of the Game
 func (g *Game) Draw(screen *ebiten.Image) {
+
+	screenGlobal = screen
 
 	now := time.Now()
 	game.deltatime = now.Sub(game.lastUpdateTime).Seconds()
@@ -132,21 +146,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case 0:
 
 		playbtn.DrawButton(screen)
-		if playbtn.pressed {
-			game.stateid = 3
-		}
 
 		optionsbtn.DrawButton(screen)
-		if optionsbtn.pressed {
-			game.stateid = 1
-		}
 
 	case 1:
 
 		options_exitbtn.DrawButton(screen)
-		if options_exitbtn.pressed {
-			game.stateid = 0
-		}
 
 		vector.DrawFilledRect(screen, 200, 25, screenWidth-250, screenHeight-50, uidarkgray, false)
 		testslider.DrawSlider(screen)
@@ -164,6 +169,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		for i := 0; i < len(drawables); i++ {
 			drawables[i].draw(screen)
+		}
+
+		for i := 0; i < len(game.currentmap.paths); i++ {
+			drawPath(screen, game.currentmap.paths[i])
+		}
+
+		for i := 0; i < len(game.currentmap.nodes); i++ {
+			n := game.currentmap.nodes[i]
+			ebitenutil.DebugPrintAt(screen, strconv.Itoa(n.id), int(offsetsx(n.pos.float_x)), int(offsetsy(n.pos.float_y)))
 		}
 
 	}

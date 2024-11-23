@@ -10,7 +10,7 @@ var drawables []drawable
 
 type drawable interface {
 	draw(sceen *ebiten.Image)
-	floatY() float32
+	Y() float32
 }
 
 func drawTile(screen, t *ebiten.Image, i, j int) {
@@ -40,8 +40,8 @@ func (e *enemy) draw(screen *ebiten.Image) {
 
 	// Positioning with respect to camera
 	op.GeoM.Translate(
-		float64(offsetsx(e.pos.float_y)),
-		float64(offsetsy(e.pos.float_x)),
+		float64(offsetsx(e.pos.float_x)),
+		float64(offsetsy(e.pos.float_y)),
 	)
 
 	// Draw the selected portion of the image onto the screen
@@ -78,11 +78,11 @@ func (c *character) draw(screen *ebiten.Image) {
 	screen.DrawImage(c.texture, op)
 }
 
-func (c *character) floatY() float32 {
+func (c *character) Y() float32 {
 	return c.pos.float_y
 }
 
-func (t *tree) floatY() float32 {
+func (t *tree) Y() float32 {
 	switch t.treeId {
 	case 0:
 		return t.pos.float_y + 95
@@ -92,12 +92,12 @@ func (t *tree) floatY() float32 {
 	return t.pos.float_y
 }
 
-func (e *enemy) floatY() float32 {
+func (e *enemy) Y() float32 {
 	return e.pos.float_y + 16
 }
 
 func sortDrawables() {
 	sort.Slice(drawables, func(a, b int) bool {
-		return drawables[a].floatY() < drawables[b].floatY()
+		return drawables[a].Y() < drawables[b].Y()
 	})
 }

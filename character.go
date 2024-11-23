@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	CHARSPEED  = 150
+	CHARSPEED  = 200
 	DASHSPEED  = 700
-	BOOSTSPEED = 200
+	BOOSTSPEED = 300
 )
 
 type character struct {
@@ -57,7 +57,8 @@ func (c *character) updateAnimation() {
 }
 
 func (c *character) todoCharacter() {
-	c.checkMovement()
 	c.updateCamera()
+	c.checkMovement()
 	c.updateAnimation()
+
 }
