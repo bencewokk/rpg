@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"time"
 
@@ -141,6 +142,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	now := time.Now()
 	game.deltatime = now.Sub(game.lastUpdateTime).Seconds()
 	game.lastUpdateTime = now
+
+	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
+
+		fmt.Println("exited with code 0")
+		os.Exit(0)
+	}
 
 	switch game.stateid {
 	case 0:
