@@ -55,20 +55,20 @@ func drawPath(s *ebiten.Image, path path) {
 		float64(offsetsx(path.nodeB.pos.float_x)), float64(offsetsy(path.nodeB.pos.float_y)), uidarkred)
 }
 
-const maxNodeDistance float32 = 10.0 // Maximum distance to snap to an existing node
+// const maxNodeDistance float32 = 10.0 // Maximum distance to snap to an existing node
 
-func findNearestNode(pos pos) (*node, bool) {
-	var nearest *node
-	minDistance := maxNodeDistance
-	for i := range game.currentmap.nodes {
-		dist := Distance(pos, game.currentmap.nodes[i].pos)
-		if dist < minDistance {
-			minDistance = dist
-			nearest = &game.currentmap.nodes[i]
-		}
-	}
-	return nearest, nearest != nil
-}
+// func findNearestNode(pos pos) (*node, bool) {
+// 	var nearest *node
+// 	minDistance := maxNodeDistance
+// 	for i := range game.currentmap.nodes {
+// 		dist := Distance(pos, game.currentmap.nodes[i].pos)
+// 		if dist < minDistance {
+// 			minDistance = dist
+// 			nearest = &game.currentmap.nodes[i]
+// 		}
+// 	}
+// 	return nearest, nearest != nil
+// }
 
 // Closest point on a line segment from target
 func closestPointOnSegment(target, a, b pos) pos {
@@ -97,11 +97,28 @@ func closestPointOnSegment(target, a, b pos) pos {
 	}
 }
 
-func findClosestPointOnPaths(target pos, paths []path) (pos, float32) {
+func findClosestNode(target pos) node {
+	var rn node
+	leastDistance := float32(1e9) // Initialize to a very large value
+
+	for _, n := range game.currentmap.nodes {
+		if Distance(n.pos, target) < leastDistance {
+			fmt.Println(leastDistance)
+			leastDistance = Distance(n.pos, target)
+			rn = n
+		}
+	}
+
+	fmt.Println(rn.id, "closest")
+
+	return rn
+}
+
+func findClosestPointOnPaths(target pos) (pos, float32) {
 	var closestPoint pos
 	minDistance := float32(math.MaxFloat32)
 
-	for _, p := range paths {
+	for _, p := range game.currentmap.paths {
 		point := closestPointOnSegment(target, p.nodeA.pos, p.nodeB.pos)
 		d := Distance(target, point)
 		if d < minDistance {
@@ -112,7 +129,7 @@ func findClosestPointOnPaths(target pos, paths []path) (pos, float32) {
 	return closestPoint, minDistance
 }
 
-func nodesWithinRange(startNode node, maxHops int, paths []path) map[int]bool {
+func nodesWithinRange(startNode node, maxHops int) map[int]bool {
 	visited := make(map[int]bool)
 	queue := []struct {
 		nodeID int
@@ -134,7 +151,7 @@ func nodesWithinRange(startNode node, maxHops int, paths []path) map[int]bool {
 		visited[current.nodeID] = true
 
 		// Enqueue neighbors
-		for _, p := range paths {
+		for _, p := range game.currentmap.paths {
 			// Check if the current node is part of the path
 			var neighborID int
 			if p.nodeA.id == current.nodeID {
@@ -159,7 +176,7 @@ func nodesWithinRange(startNode node, maxHops int, paths []path) map[int]bool {
 
 func randomPointWithinRange(startNode node, maxHops int) pos {
 	// Find nodes within range using BFS
-	reachableNodes := nodesWithinRange(startNode, maxHops, game.currentmap.paths)
+	reachableNodes := nodesWithinRange(startNode, maxHops)
 
 	// Collect paths between reachable nodes
 	validPaths := []path{}

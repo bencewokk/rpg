@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -168,7 +167,6 @@ func updateAnimationCycle() {
 
 	if animationTimer > 0.13 {
 		animationCycle++
-		fmt.Println(animationCycle)
 		animationTimer = 0
 	}
 }

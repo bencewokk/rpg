@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -18,6 +19,11 @@ type enemy struct {
 	animationState     int
 
 	aiState int
+
+	inPatrol   bool
+	target     pos
+	route      []pos
+	routeIndex int
 }
 
 func createEnemy(pos pos) {
@@ -31,7 +37,7 @@ func (e *enemy) todoEnemy() {
 	e.updateAnimation()
 	e.updateAiState()
 
-	nearestP, _ := findClosestPointOnPaths(e.pos, game.currentmap.paths)
+	nearestP, _ := findClosestPointOnPaths(e.pos)
 
 	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(nearestP.float_x)), float64(offsetsy(nearestP.float_y)), 8, uilightgray2)
 }
@@ -55,28 +61,52 @@ func (e *enemy) moveTowards(target pos) {
 
 }
 
-func (e *enemy) patrol(nearestP pos) {
-	var target pos
-	if Distance(target, e.pos) < 0 {
-		n, _ := findNearestNode(nearestP)
-		target = randomPointWithinRange(*n, 10)
+func (e *enemy) patrol() {
+
+	c := findClosestNode(e.pos)
+	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(e.target.float_x)), float64(offsetsy(e.target.float_y)), 20, uilightred)
+	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(e.pos.float_x)), float64(offsetsy(e.pos.float_y)), 20, uilightred)
+	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(c.pos.float_x)), float64(offsetsy(c.pos.float_y)), 20, uilightred)
+
+	if !e.inPatrol {
+		e.inPatrol = true
+		//TODO: add calc route with A*
+
+		fmt.Println(e.route)
+		e.target = e.route[e.routeIndex]
+
 	} else {
-		fmt.Println(target)
-		fmt.Println(e.pos)
-		e.moveTowards(target)
+		e.moveTowards(e.target)
 	}
 
-	e.moveTowards(target)
+	ebitenutil.DebugPrintAt(screenGlobal, strconv.Itoa(int(Distance(e.target, e.pos))), 0, 50)
+
+	if Distance(e.target, e.pos) < 10 {
+
+		fmt.Println(e.routeIndex, len(e.route)-1)
+
+		if e.routeIndex == len(e.route)-1 {
+			e.inPatrol = false
+			e.routeIndex = 0
+		} else {
+			e.routeIndex++
+
+			e.target = e.route[e.routeIndex]
+		}
+
+	}
 }
 
 func (e *enemy) updateAiState() {
-	nearestP, distanceToNearest := findClosestPointOnPaths(e.pos, game.currentmap.paths)
+	nearestP, distanceToNearest := findClosestPointOnPaths(e.pos)
 	switch e.aiState {
 	case 0: // roaming
 		if distanceToNearest > 40 {
 			e.moveTowards(nearestP)
 		} else {
-			e.patrol(nearestP)
+			e.aiState = 1
 		}
+	case 1:
+		e.patrol()
 	}
 }
