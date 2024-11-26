@@ -34,8 +34,14 @@ func (e *enemy) draw(screen *ebiten.Image) {
 
 	// Set up scaling
 	originalWidth, originalHeight := e.texture.Size()
+	var yoffset float64
+	if e.animationState == 1 {
+		yoffset = 1.3
+	} else {
+		yoffset = 1
+	}
 	scaleX := float64(screendivisor) / float64(originalWidth) * float64(game.camera.zoom)
-	scaleY := float64(screendivisor) / float64(originalHeight) * float64(game.camera.zoom)
+	scaleY := float64(screendivisor) / float64(originalHeight) * float64(game.camera.zoom) * yoffset
 	op.GeoM.Scale(scaleX, scaleY)
 
 	// Positioning with respect to camera

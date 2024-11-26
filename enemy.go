@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"strconv"
 
@@ -24,12 +23,15 @@ type enemy struct {
 	target     pos
 	route      []pos
 	routeIndex int
+
+	sleeping   bool
+	sinceSleep float64
 }
 
 func createEnemy(pos pos) {
 	var e enemy
 	e.pos = pos
-	e.speed = 100
+	e.speed = 80
 	drawables = append(drawables, &e)
 }
 
@@ -43,10 +45,12 @@ func (e *enemy) todoEnemy() {
 }
 
 func (e *enemy) updateAnimation() {
-	e.texture = enemyAnimations[0][(animationCycle+e.offsetForAnimation)%6]
+	e.texture = enemyAnimations[e.animationState][(animationCycle+e.offsetForAnimation)%6]
+	e.animationState = 0
 }
 
 func (e *enemy) moveTowards(target pos) {
+	e.animationState = 1
 	dx := target.float_x - e.pos.float_x
 	dy := target.float_y - e.pos.float_y
 	length := float32(math.Sqrt(float64(dx*dx + dy*dy)))
@@ -68,11 +72,12 @@ func (e *enemy) patrol() {
 	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(e.pos.float_x)), float64(offsetsy(e.pos.float_y)), 20, uilightred)
 	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(c.pos.float_x)), float64(offsetsy(c.pos.float_y)), 20, uilightred)
 
-	if !e.inPatrol {
-		e.inPatrol = true
-		//TODO: add calc route with A*
+	e.sinceSleep += game.deltatime
 
-		fmt.Println(e.route)
+	if !e.inPatrol && e.sinceSleep > 0.2 {
+		e.inPatrol = true
+		e.sinceSleep = 0
+		e.route = findShortestPathPositions(findClosestNode(e.pos).id, findClosestNode(randomPointWithinRange(findClosestNode(e.pos), 6)).id)
 		e.target = e.route[e.routeIndex]
 
 	} else {
@@ -83,24 +88,22 @@ func (e *enemy) patrol() {
 
 	if Distance(e.target, e.pos) < 10 {
 
-		fmt.Println(e.routeIndex, len(e.route)-1)
-
 		if e.routeIndex == len(e.route)-1 {
 			e.inPatrol = false
 			e.routeIndex = 0
 		} else {
+			e.sinceSleep = 0
 			e.routeIndex++
 
 			e.target = e.route[e.routeIndex]
 		}
-
 	}
 }
 
 func (e *enemy) updateAiState() {
 	nearestP, distanceToNearest := findClosestPointOnPaths(e.pos)
 	switch e.aiState {
-	case 0: // roaming
+	case 0: // move towards nearest path
 		if distanceToNearest > 40 {
 			e.moveTowards(nearestP)
 		} else {
@@ -108,5 +111,6 @@ func (e *enemy) updateAiState() {
 		}
 	case 1:
 		e.patrol()
+	case 2:
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"sort"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -54,21 +55,6 @@ func drawPath(s *ebiten.Image, path path) {
 		float64(offsetsx(path.nodeA.pos.float_x)), float64(offsetsy(path.nodeA.pos.float_y)),
 		float64(offsetsx(path.nodeB.pos.float_x)), float64(offsetsy(path.nodeB.pos.float_y)), uidarkred)
 }
-
-// const maxNodeDistance float32 = 10.0 // Maximum distance to snap to an existing node
-
-// func findNearestNode(pos pos) (*node, bool) {
-// 	var nearest *node
-// 	minDistance := maxNodeDistance
-// 	for i := range game.currentmap.nodes {
-// 		dist := Distance(pos, game.currentmap.nodes[i].pos)
-// 		if dist < minDistance {
-// 			minDistance = dist
-// 			nearest = &game.currentmap.nodes[i]
-// 		}
-// 	}
-// 	return nearest, nearest != nil
-// }
 
 // Closest point on a line segment from target
 func closestPointOnSegment(target, a, b pos) pos {
@@ -201,4 +187,76 @@ func randomPointWithinRange(startNode node, maxHops int) pos {
 	y := randomPath.nodeA.pos.float_y + t*(randomPath.nodeB.pos.float_y-randomPath.nodeA.pos.float_y)
 
 	return pos{float_x: x, float_y: y}
+}
+
+type priorityQueueItem struct {
+	nodeID   int
+	cost     float32
+	previous *priorityQueueItem
+}
+
+func findShortestPathPositions(startID, goalID int) []pos {
+	// Priority queue for exploring nodes, ordered by cost
+	pq := []priorityQueueItem{
+		{nodeID: startID, cost: 0, previous: nil},
+	}
+
+	// Map to store the shortest cost to reach each node
+	costSoFar := make(map[int]float32)
+	costSoFar[startID] = 0
+
+	// Map to reconstruct the path
+	previousNode := make(map[int]int)
+
+	for len(pq) > 0 {
+		// Extract the node with the lowest cost
+		current := pq[0]
+		pq = pq[1:]
+
+		// If we reached the goal, reconstruct the path as positions
+		if current.nodeID == goalID {
+			var path []pos
+			for step := &current; step != nil; step = step.previous {
+				node := findNodeByID(step.nodeID)
+				if node != nil {
+					path = append([]pos{node.pos}, path...)
+				}
+			}
+			return path
+		}
+
+		// Explore neighbors
+		for _, p := range game.currentmap.paths {
+			var neighborID int
+			if p.nodeA.id == current.nodeID {
+				neighborID = p.nodeB.id
+			} else if p.nodeB.id == current.nodeID {
+				neighborID = p.nodeA.id
+			} else {
+				continue
+			}
+
+			// Calculate new cost
+			newCost := costSoFar[current.nodeID] + p.cost
+			if oldCost, exists := costSoFar[neighborID]; !exists || newCost < oldCost {
+				costSoFar[neighborID] = newCost
+				previousNode[neighborID] = current.nodeID
+
+				// Add to priority queue
+				pq = append(pq, priorityQueueItem{
+					nodeID:   neighborID,
+					cost:     newCost,
+					previous: &current,
+				})
+
+				// Sort the priority queue by cost
+				sort.Slice(pq, func(i, j int) bool {
+					return pq[i].cost < pq[j].cost
+				})
+			}
+		}
+	}
+
+	// If no path is found, return an empty slice
+	return nil
 }

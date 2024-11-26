@@ -145,7 +145,7 @@ func loadChar() {
 	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running_S6.png"))
 }
 
-var enemyAnimations [1][6]*ebiten.Image
+var enemyAnimations [2][6]*ebiten.Image
 
 func loadEnemy() {
 	enemyAnimations[0][0] = loadPNG("import/Characters/Enemy/enemyidle1.png")
@@ -155,6 +155,14 @@ func loadEnemy() {
 	enemyAnimations[0][4] = loadPNG("import/Characters/Enemy/enemyidle1.png")
 	enemyAnimations[0][5] = loadPNG("import/Characters/Enemy/enemyidle2.png")
 	enemyAnimations[0][5] = loadPNG("import/Characters/Enemy/enemyidle2.png")
+
+	enemyAnimations[1][0] = loadPNG("import/Characters/Enemy/enemyrun1.png")
+	enemyAnimations[1][1] = loadPNG("import/Characters/Enemy/enemyrun2.png")
+	enemyAnimations[1][2] = loadPNG("import/Characters/Enemy/enemyrun3.png")
+	enemyAnimations[1][3] = loadPNG("import/Characters/Enemy/enemyrun4.png")
+	enemyAnimations[1][4] = loadPNG("import/Characters/Enemy/enemyrun1.png")
+	enemyAnimations[1][5] = loadPNG("import/Characters/Enemy/enemyrun2.png")
+	enemyAnimations[1][5] = loadPNG("import/Characters/Enemy/enemyrun2.png")
 }
 
 var (
