@@ -8,6 +8,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
+const (
+	ENEMYNORMALSPEED = 50
+	ENEMYALLERTSPEED = 100
+)
+
 type enemy struct {
 	pos     pos
 	texture *ebiten.Image
@@ -31,7 +36,7 @@ type enemy struct {
 func createEnemy(pos pos) {
 	var e enemy
 	e.pos = pos
-	e.speed = 80
+	e.speed = ENEMYNORMALSPEED
 	drawables = append(drawables, &e)
 }
 
@@ -69,12 +74,18 @@ func (e *enemy) patrol() {
 
 	c := findClosestNode(e.pos)
 	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(e.target.float_x)), float64(offsetsy(e.target.float_y)), 20, uilightred)
+
+	if len(e.route) != 0 {
+		ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(e.route[len(e.route)-1].float_x)), float64(offsetsy(e.route[len(e.route)-1].float_y)), 20, uidarkred)
+
+	}
+
 	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(e.pos.float_x)), float64(offsetsy(e.pos.float_y)), 20, uilightred)
 	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(c.pos.float_x)), float64(offsetsy(c.pos.float_y)), 20, uilightred)
 
 	e.sinceSleep += game.deltatime
 
-	if !e.inPatrol && e.sinceSleep > 0.2 {
+	if !e.inPatrol {
 		e.inPatrol = true
 		e.sinceSleep = 0
 		e.route = findShortestPathPositions(findClosestNode(e.pos).id, findClosestNode(randomPointWithinRange(findClosestNode(e.pos), 6)).id)
@@ -90,9 +101,9 @@ func (e *enemy) patrol() {
 
 		if e.routeIndex == len(e.route)-1 {
 			e.inPatrol = false
+			e.sinceSleep = 0
 			e.routeIndex = 0
 		} else {
-			e.sinceSleep = 0
 			e.routeIndex++
 
 			e.target = e.route[e.routeIndex]
@@ -110,7 +121,11 @@ func (e *enemy) updateAiState() {
 			e.aiState = 1
 		}
 	case 1:
-		e.patrol()
+		if e.sinceSleep > 1 {
+			e.patrol()
+		} else {
+			e.sinceSleep += game.deltatime
+		}
 	case 2:
 	}
 }
