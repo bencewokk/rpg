@@ -32,16 +32,8 @@ func (e *enemy) draw(screen *ebiten.Image) {
 
 	e.todoEnemy()
 
-	// Set up scaling
-	originalWidth, originalHeight := e.texture.Size()
-	var yoffset float64
-	if e.animationState == 1 {
-		yoffset = 1.3
-	} else {
-		yoffset = 1
-	}
-	scaleX := float64(screendivisor) / float64(originalWidth) * float64(game.camera.zoom)
-	scaleY := float64(screendivisor) / float64(originalHeight) * float64(game.camera.zoom) * yoffset
+	scaleX := float64(screendivisor) / 18 * float64(game.camera.zoom)
+	scaleY := float64(screendivisor) / 18 * float64(game.camera.zoom)
 	op.GeoM.Scale(scaleX, scaleY)
 
 	// Positioning with respect to camera
@@ -72,8 +64,8 @@ func (c *character) draw(screen *ebiten.Image) {
 	c.todoCharacter()
 
 	originalWidth, originalHeight := c.texture.Size()
-	scaleX := float64(screendivisor) / float64(originalWidth) * float64(game.camera.zoom)
-	scaleY := float64(screendivisor) / float64(originalHeight) * float64(game.camera.zoom)
+	scaleX := float64(screendivisor) / 18 * float64(game.camera.zoom)
+	scaleY := float64(screendivisor) / 18 * float64(game.camera.zoom)
 	op.GeoM.Scale(scaleX, scaleY)
 
 	// Calculate the centered position based on screen dimensions and zoom level
@@ -99,7 +91,7 @@ func (t *tree) Y() float32 {
 }
 
 func (e *enemy) Y() float32 {
-	return e.pos.float_y + 16
+	return e.pos.float_y + 25
 }
 
 func sortDrawables() {
