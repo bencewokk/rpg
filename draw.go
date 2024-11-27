@@ -13,6 +13,22 @@ type drawable interface {
 	Y() float32
 }
 
+func (c *character) getId(id int) {
+	c.id = id
+}
+func (e *enemy) getId(id int) {
+	e.id = id
+}
+func (t *tree) getId(id int) {
+	t.id = id
+}
+
+func removeAtID(id int, d []drawable) []drawable {
+	var dr []drawable
+	dr = append(d[:id], d[id+1:]...)
+	return dr
+}
+
 func drawTile(screen, t *ebiten.Image, i, j int) {
 	op := &ebiten.DrawImageOptions{}
 

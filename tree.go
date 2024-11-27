@@ -7,6 +7,8 @@ import (
 )
 
 type tree struct {
+	id int
+
 	typeOf  int
 	pos     pos
 	texture *ebiten.Image

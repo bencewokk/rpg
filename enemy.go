@@ -16,6 +16,7 @@ const (
 type enemy struct {
 	pos     pos
 	texture *ebiten.Image
+	id      int
 
 	speed float32
 
@@ -28,21 +29,27 @@ type enemy struct {
 	target     pos
 	route      []pos
 	routeIndex int
+	chasing    bool
 
 	sleeping   bool
 	sinceSleep float64
+
+	hp int
 }
 
 func createEnemy(pos pos) {
 	var e enemy
 	e.pos = pos
 	e.speed = ENEMYNORMALSPEED
+	e.hp = 60
 	drawables = append(drawables, &e)
+
 }
 
 func (e *enemy) todoEnemy() {
 	e.updateAnimation()
-	e.updateAiState()
+	e.updateState()
+	e.checkHp()
 
 	nearestP, _ := findClosestPointOnPaths(e.pos)
 
@@ -88,6 +95,7 @@ func (e *enemy) patrol() {
 	if !e.inPatrol {
 		e.inPatrol = true
 		e.sinceSleep = 0
+		e.routeIndex = 0
 		e.route = findShortestPathPositions(findClosestNode(e.pos).id, findClosestNode(randomPointWithinRange(findClosestNode(e.pos), 6)).id)
 		e.target = e.route[e.routeIndex]
 
@@ -98,34 +106,74 @@ func (e *enemy) patrol() {
 	ebitenutil.DebugPrintAt(screenGlobal, strconv.Itoa(int(Distance(e.target, e.pos))), 0, 50)
 
 	if Distance(e.target, e.pos) < 10 {
-
 		if e.routeIndex == len(e.route)-1 {
 			e.inPatrol = false
 			e.sinceSleep = 0
 			e.routeIndex = 0
 		} else {
 			e.routeIndex++
-
 			e.target = e.route[e.routeIndex]
 		}
 	}
 }
 
-func (e *enemy) updateAiState() {
-	nearestP, distanceToNearest := findClosestPointOnPaths(e.pos)
-	switch e.aiState {
-	case 0: // move towards nearest path
-		if distanceToNearest > 40 {
-			e.moveTowards(nearestP)
-		} else {
-			e.aiState = 1
+func (e *enemy) chase() {
+	nearestP := nearestPlayer(e.pos)
+	e.moveTowards(nearestP.pos)
+}
+
+func (e *enemy) checkCollision(posA, posB pos) bool {
+	if Distance(posA, posB) < 50 {
+		return true
+	}
+	return false
+}
+
+func (e *enemy) hurt(c *character) {
+	e.hp -= 30
+	c.hp -= 30
+}
+
+func (e *enemy) checkHp() {
+	if e.hp < 1 {
+		removeAtID(e.id, drawables)
+	}
+}
+
+func (e *enemy) updateState() {
+	if Distance(e.pos, nearestPlayer(e.pos).pos) > 100 && !e.chasing {
+		e.speed = ENEMYNORMALSPEED
+		nearestP, distanceToNearest := findClosestPointOnPaths(e.pos)
+		switch e.aiState {
+		case 0: // move towards nearest path
+			if distanceToNearest > 40 {
+				e.moveTowards(nearestP)
+			} else {
+				e.aiState = 1
+			}
+		case 1:
+			if e.sinceSleep > 1 {
+				e.patrol()
+			} else {
+				e.sinceSleep += game.deltatime
+			}
 		}
-	case 1:
-		if e.sinceSleep > 1 {
-			e.patrol()
-		} else {
-			e.sinceSleep += game.deltatime
+	} else {
+
+		for i := 0; i < len(game.currentmap.players); i++ {
+			c := game.currentmap.players[i]
+			if checkCollision(e.pos, c.pos) {
+				e.hurt(c)
+			}
 		}
-	case 2:
+
+		e.chasing = true
+		e.speed = ENEMYALLERTSPEED
+		e.inPatrol = false
+		e.chase()
+
+		if Distance(e.pos, nearestPlayer(e.pos).pos) > 500 {
+			e.chasing = false
+		}
 	}
 }

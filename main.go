@@ -32,6 +32,9 @@ func gameinit() {
 
 	createCharacter()
 	createEnemy(createPos(500, 500))
+	createEnemy(createPos(700, 500))
+	createEnemy(createPos(500, 400))
+	createEnemy(createPos(400, 900))
 
 	loadChar()
 	loadEnemy()
@@ -58,6 +61,8 @@ type gamemap struct {
 
 	paths []path
 	nodes []node
+
+	players []*character
 }
 
 // read more in gamestate

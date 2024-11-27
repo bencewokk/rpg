@@ -13,9 +13,9 @@ const (
 )
 
 type character struct {
-	id      int
 	pos     pos
 	texture *ebiten.Image
+	id      int
 
 	speed              float32
 	offsetForAnimation int
@@ -29,6 +29,8 @@ type character struct {
 	dashing        bool
 
 	untilEndOfBoost float64
+
+	hp int
 }
 
 func createCharacter() {
@@ -40,6 +42,31 @@ func createCharacter() {
 	c.offsetForAnimation = rand.IntN(5)
 
 	drawables = append(drawables, &c)
+	game.currentmap.players = append(game.currentmap.players, &c)
+}
+
+func nearestPlayer(pos pos) *character {
+	var closest int
+	var closestDistance float32
+
+	for i := 0; i < len(game.currentmap.players); i++ {
+		if closestDistance > Distance(pos, game.currentmap.players[i].pos) {
+			closestDistance = Distance(pos, game.currentmap.players[i].pos)
+			closest = i
+		}
+	}
+
+	return game.currentmap.players[closest]
+}
+
+func playersInRange(pos pos, distance float32) []*character {
+	var cs []*character
+	for i := 0; i < len(game.currentmap.players); i++ {
+		if Distance(pos, game.currentmap.players[i].pos) > distance {
+			cs = append(cs, game.currentmap.players[i])
+		}
+	}
+	return cs
 }
 
 func (c *character) updateCamera() {

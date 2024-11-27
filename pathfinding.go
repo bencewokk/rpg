@@ -89,13 +89,10 @@ func findClosestNode(target pos) node {
 
 	for _, n := range game.currentmap.nodes {
 		if Distance(n.pos, target) < leastDistance {
-			fmt.Println(leastDistance)
 			leastDistance = Distance(n.pos, target)
 			rn = n
 		}
 	}
-
-	fmt.Println(rn.id, "closest")
 
 	return rn
 }
