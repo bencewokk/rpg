@@ -34,7 +34,7 @@ type enemy struct {
 	sleeping   bool
 	sinceSleep float64
 
-	hp int
+	hp float32
 }
 
 func createEnemy(pos pos) {
@@ -130,8 +130,8 @@ func (e *enemy) checkCollision(posA, posB pos) bool {
 }
 
 func (e *enemy) hurt(c *character) {
-	e.hp -= 30
-	c.hp -= 30
+	e.hp -= 0.3
+	c.hp -= 0.1
 }
 
 func (e *enemy) checkHp() {
@@ -172,7 +172,7 @@ func (e *enemy) updateState() {
 		e.inPatrol = false
 		e.chase()
 
-		if Distance(e.pos, nearestPlayer(e.pos).pos) > 500 {
+		if Distance(e.pos, nearestPlayer(e.pos).pos) > 400 {
 			e.chasing = false
 		}
 	}

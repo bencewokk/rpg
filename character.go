@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand/v2"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -30,12 +31,13 @@ type character struct {
 
 	untilEndOfBoost float64
 
-	hp int
+	hp float32
 }
 
 func createCharacter() {
 	var c character
 
+	c.hp = 100
 	c.pos = createPos(screenWidth/2, screenHeight/2)
 	c.speed = CHARSPEED
 
@@ -83,7 +85,16 @@ func (c *character) updateAnimation() {
 	c.running = false
 }
 
+func (c *character) checkHp() {
+	if c.hp < 1 {
+		removeAtID(c.id, drawables)
+	}
+
+	fmt.Println(c.hp)
+}
+
 func (c *character) todoCharacter() {
+	c.checkHp()
 	c.updateCamera()
 	c.checkMovement()
 	c.updateAnimation()

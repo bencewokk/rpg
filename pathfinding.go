@@ -5,7 +5,6 @@ import (
 	"math"
 	"math/rand"
 	"sort"
-	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -175,7 +174,6 @@ func randomPointWithinRange(startNode node, maxHops int) pos {
 	}
 
 	// Select a random path
-	rand.Seed(time.Now().UnixNano())
 	randomPath := validPaths[rand.Intn(len(validPaths))]
 
 	// Generate a random point on the selected path

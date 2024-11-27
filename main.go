@@ -35,6 +35,14 @@ func gameinit() {
 	createEnemy(createPos(700, 500))
 	createEnemy(createPos(500, 400))
 	createEnemy(createPos(400, 900))
+	createEnemy(createPos(500, 500))
+	createEnemy(createPos(700, 500))
+	createEnemy(createPos(500, 400))
+	createEnemy(createPos(400, 900))
+	createEnemy(createPos(500, 500))
+	createEnemy(createPos(700, 500))
+	createEnemy(createPos(500, 400))
+	createEnemy(createPos(400, 900))
 
 	loadChar()
 	loadEnemy()
@@ -180,6 +188,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 
 		for i := 0; i < len(drawables); i++ {
+			drawables[i].giveId(i)
 			drawables[i].draw(screen)
 		}
 

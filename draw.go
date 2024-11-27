@@ -11,15 +11,16 @@ var drawables []drawable
 type drawable interface {
 	draw(sceen *ebiten.Image)
 	Y() float32
+	giveId(id int)
 }
 
-func (c *character) getId(id int) {
+func (c *character) giveId(id int) {
 	c.id = id
 }
-func (e *enemy) getId(id int) {
+func (e *enemy) giveId(id int) {
 	e.id = id
 }
-func (t *tree) getId(id int) {
+func (t *tree) giveId(id int) {
 	t.id = id
 }
 
@@ -54,8 +55,8 @@ func (e *enemy) draw(screen *ebiten.Image) {
 
 	// Positioning with respect to camera
 	op.GeoM.Translate(
-		float64(offsetsx(e.pos.float_x)),
-		float64(offsetsy(e.pos.float_y)),
+		float64(offsetsx(e.pos.float_x))-float64(screendivisor),
+		float64(offsetsy(e.pos.float_y))-float64(screendivisor),
 	)
 
 	// Draw the selected portion of the image onto the screen

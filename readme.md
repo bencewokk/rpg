@@ -70,3 +70,7 @@ The [sprite pack](https://ipyxeloutlookcomar.itch.io/forgottenland) I am using c
 #### 2024.11.17 - version 0.1.4
 - Implemented trees into the game and mapmaker
 - Added layering for trees and the character
+
+#### 2024.11.27 - version 0.1.5
+- Added pathfinding for enemies
+- Started working on basic gameplay and interactions between players and enemies
