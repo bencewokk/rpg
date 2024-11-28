@@ -53,6 +53,12 @@ func (e *enemy) draw(screen *ebiten.Image) {
 	scaleY := float64(screendivisor) / 18 * float64(game.camera.zoom)
 	op.GeoM.Scale(scaleX, scaleY)
 
+	if e.hit {
+		var colorscale ebiten.ColorM
+		colorscale.Scale(1.5, 1, 1.1, 1)
+		op.ColorM = colorscale
+	}
+
 	// Positioning with respect to camera
 	op.GeoM.Translate(
 		float64(offsetsx(e.pos.float_x))-float64(screendivisor),

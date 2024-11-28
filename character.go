@@ -108,13 +108,14 @@ func (c *character) attack() {
 	c.sinceAttack = 0.52
 	c.offsetForAnimationAttack = animationCycle
 
-	es := enemiesInRange(c.pos, 20)
-	fmt.Println(len(es))
+	es := enemiesInRange(c.pos, 50)
 
-	// for i := 0; i < len(es); i++ {
-	// 	es[i].hp -= 0.1
-	// 	es[i].texture.Fill(uidarkgray)
-	// }
+	for i := 0; i < len(es); i++ {
+		es[i].hp -= 20
+		fmt.Println("hit")
+		es[i].hit = true
+		es[i].sinceHit = 0.2
+	}
 
 }
 

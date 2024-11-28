@@ -33,13 +33,15 @@ type enemy struct {
 	sleeping   bool
 	sinceSleep float64
 
-	hp float32
+	hp       float32
+	hit      bool
+	sinceHit float64
 }
 
 func enemiesInRange(pos pos, distance float32) []*enemy {
 	var es []*enemy
 	for i := 0; i < len(game.currentmap.enemies); i++ {
-		if Distance(pos, game.currentmap.enemies[i].pos) > distance {
+		if Distance(pos, game.currentmap.enemies[i].pos) < distance {
 			es = append(es, game.currentmap.enemies[i])
 		}
 	}
@@ -135,6 +137,14 @@ func (e *enemy) checkHp() {
 }
 
 func (e *enemy) updateState() {
+
+	e.sinceHit -= game.deltatime
+
+	if e.sinceHit < 0 {
+
+		e.hit = false
+	}
+
 	if Distance(e.pos, nearestCharacter(e.pos).pos) > 100 && !e.chasing {
 		e.speed = ENEMYNORMALSPEED
 		nearestP, distanceToNearest := findClosestPointOnPaths(e.pos)

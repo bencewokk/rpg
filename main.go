@@ -179,8 +179,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case 3:
 		sortDrawables()
 
-		fmt.Println(game.currentmap.enemies)
-
 		for i := 0; i < game.currentmap.height; i++ {
 			for j := 0; j < game.currentmap.width; j++ {
 				if game.currentmap.texture[i][j] != nil {
