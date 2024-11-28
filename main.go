@@ -201,6 +201,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			ebitenutil.DebugPrintAt(screen, strconv.Itoa(n.id), int(offsetsx(n.pos.float_x)), int(offsetsy(n.pos.float_y)))
 		}
 
+		p := 0
+		game.currentmap.players[p].drawUi()
+
 	}
 
 	fps := ebiten.CurrentFPS()

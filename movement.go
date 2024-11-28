@@ -176,7 +176,7 @@ func (c *character) checkMovement() {
 	if c.untilEndOfDash < 0 && c.dashing {
 		c.dashing = false
 		c.speed = CHARSPEED // Reset speed after dash
-		c.untilNewDash = 3
+		c.untilNewDash = 1.5
 	}
 
 	correctedPos := createPos(c.pos.float_x+screendivisor/2, c.pos.float_y+screendivisor/2)

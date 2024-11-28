@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand/v2"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -108,11 +107,10 @@ func (c *character) attack() {
 	c.sinceAttack = 0.52
 	c.offsetForAnimationAttack = animationCycle
 
-	es := enemiesInRange(c.pos, 50)
+	es := enemiesInRange(c.pos, 80)
 
 	for i := 0; i < len(es); i++ {
-		es[i].hp -= 20
-		fmt.Println("hit")
+		es[i].hp -= float32(5 / len(es) * 4)
 		es[i].hit = true
 		es[i].sinceHit = 0.2
 	}
