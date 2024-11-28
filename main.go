@@ -71,6 +71,7 @@ type gamemap struct {
 	nodes []node
 
 	players []*character
+	enemies []*enemy
 }
 
 // read more in gamestate
@@ -157,7 +158,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	game.lastUpdateTime = now
 
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
-
 		fmt.Println("exited with code 0")
 		os.Exit(0)
 	}
@@ -178,6 +178,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	case 3:
 		sortDrawables()
+
+		fmt.Println(game.currentmap.enemies)
 
 		for i := 0; i < game.currentmap.height; i++ {
 			for j := 0; j < game.currentmap.width; j++ {

@@ -8,9 +8,10 @@ import (
 )
 
 const (
-	CHARSPEED  = 200
-	DASHSPEED  = 700
-	BOOSTSPEED = 300
+	CHARSPEED   = 200
+	DASHSPEED   = 700
+	BOOSTSPEED  = 300
+	ATTACKSPEED = 100
 )
 
 type character struct {
@@ -32,6 +33,11 @@ type character struct {
 	untilEndOfBoost float64
 
 	hp float32
+
+	attacking                bool
+	sinceAttack              float64
+	attackCooldown           float64
+	offsetForAnimationAttack int
 }
 
 func createCharacter() {
@@ -47,7 +53,7 @@ func createCharacter() {
 	game.currentmap.players = append(game.currentmap.players, &c)
 }
 
-func nearestPlayer(pos pos) *character {
+func nearestCharacter(pos pos) *character {
 	var closest int
 	var closestDistance float32
 
@@ -61,7 +67,7 @@ func nearestPlayer(pos pos) *character {
 	return game.currentmap.players[closest]
 }
 
-func playersInRange(pos pos, distance float32) []*character {
+func charactersInRange(pos pos, distance float32) []*character {
 	var cs []*character
 	for i := 0; i < len(game.currentmap.players); i++ {
 		if Distance(pos, game.currentmap.players[i].pos) > distance {
@@ -76,21 +82,46 @@ func (c *character) updateCamera() {
 }
 
 func (c *character) updateAnimation() {
-	if c.running {
-		c.animationState = 2
+	if !c.attacking {
+		if c.running {
+			c.animationState = 2
+		} else {
+			c.animationState = 0
+		}
+
+		c.texture = characterAnimations[c.animationState+c.facingNorth][(animationCycle+c.offsetForAnimation)%6]
+		c.running = false
 	} else {
-		c.animationState = 0
+		c.speed = ATTACKSPEED
+		c.animationState = 4
+		c.texture = characterAnimations[c.animationState+c.facingNorth][(animationCycle+c.offsetForAnimation-c.offsetForAnimationAttack)%4]
+		if c.sinceAttack < 0 {
+			c.attacking = false
+			c.speed = CHARSPEED
+			c.attackCooldown = 0.5
+		}
 	}
-	c.texture = characterAnimations[c.animationState+c.facingNorth][(animationCycle+c.offsetForAnimation)%6]
-	c.running = false
+}
+
+func (c *character) attack() {
+	c.attacking = true
+	c.sinceAttack = 0.52
+	c.offsetForAnimationAttack = animationCycle
+
+	es := enemiesInRange(c.pos, 20)
+	fmt.Println(len(es))
+
+	// for i := 0; i < len(es); i++ {
+	// 	es[i].hp -= 0.1
+	// 	es[i].texture.Fill(uidarkgray)
+	// }
+
 }
 
 func (c *character) checkHp() {
 	if c.hp < 1 {
 		removeAtID(c.id, drawables)
 	}
-
-	fmt.Println(c.hp)
 }
 
 func (c *character) todoCharacter() {
@@ -98,5 +129,4 @@ func (c *character) todoCharacter() {
 	c.updateCamera()
 	c.checkMovement()
 	c.updateAnimation()
-
 }

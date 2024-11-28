@@ -2,10 +2,9 @@ package main
 
 import (
 	"math"
-	"strconv"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 const (
@@ -37,13 +36,24 @@ type enemy struct {
 	hp float32
 }
 
+func enemiesInRange(pos pos, distance float32) []*enemy {
+	var es []*enemy
+	for i := 0; i < len(game.currentmap.enemies); i++ {
+		if Distance(pos, game.currentmap.enemies[i].pos) > distance {
+			es = append(es, game.currentmap.enemies[i])
+		}
+	}
+	return es
+}
+
 func createEnemy(pos pos) {
 	var e enemy
 	e.pos = pos
 	e.speed = ENEMYNORMALSPEED
 	e.hp = 60
+	e.offsetForAnimation = rand.Intn(5)
+	game.currentmap.enemies = append(game.currentmap.enemies, &e)
 	drawables = append(drawables, &e)
-
 }
 
 func (e *enemy) todoEnemy() {
@@ -51,9 +61,6 @@ func (e *enemy) todoEnemy() {
 	e.updateState()
 	e.checkHp()
 
-	nearestP, _ := findClosestPointOnPaths(e.pos)
-
-	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(nearestP.float_x)), float64(offsetsy(nearestP.float_y)), 8, uilightgray2)
 }
 
 func (e *enemy) updateAnimation() {
@@ -79,17 +86,6 @@ func (e *enemy) moveTowards(target pos) {
 
 func (e *enemy) patrol() {
 
-	c := findClosestNode(e.pos)
-	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(e.target.float_x)), float64(offsetsy(e.target.float_y)), 20, uilightred)
-
-	if len(e.route) != 0 {
-		ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(e.route[len(e.route)-1].float_x)), float64(offsetsy(e.route[len(e.route)-1].float_y)), 20, uidarkred)
-
-	}
-
-	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(e.pos.float_x)), float64(offsetsy(e.pos.float_y)), 20, uilightred)
-	ebitenutil.DrawCircle(screenGlobal, float64(offsetsx(c.pos.float_x)), float64(offsetsy(c.pos.float_y)), 20, uilightred)
-
 	e.sinceSleep += game.deltatime
 
 	if !e.inPatrol {
@@ -103,9 +99,7 @@ func (e *enemy) patrol() {
 		e.moveTowards(e.target)
 	}
 
-	ebitenutil.DebugPrintAt(screenGlobal, strconv.Itoa(int(Distance(e.target, e.pos))), 0, 50)
-
-	if Distance(e.target, e.pos) < 10 {
+	if Distance(e.target, e.pos) < 30 {
 		if e.routeIndex == len(e.route)-1 {
 			e.inPatrol = false
 			e.sinceSleep = 0
@@ -118,7 +112,7 @@ func (e *enemy) patrol() {
 }
 
 func (e *enemy) chase() {
-	nearestP := nearestPlayer(e.pos)
+	nearestP := nearestCharacter(e.pos)
 	e.moveTowards(nearestP.pos)
 }
 
@@ -141,7 +135,7 @@ func (e *enemy) checkHp() {
 }
 
 func (e *enemy) updateState() {
-	if Distance(e.pos, nearestPlayer(e.pos).pos) > 100 && !e.chasing {
+	if Distance(e.pos, nearestCharacter(e.pos).pos) > 100 && !e.chasing {
 		e.speed = ENEMYNORMALSPEED
 		nearestP, distanceToNearest := findClosestPointOnPaths(e.pos)
 		switch e.aiState {
@@ -172,7 +166,7 @@ func (e *enemy) updateState() {
 		e.inPatrol = false
 		e.chase()
 
-		if Distance(e.pos, nearestPlayer(e.pos).pos) > 400 {
+		if Distance(e.pos, nearestCharacter(e.pos).pos) > 400 {
 			e.chasing = false
 		}
 	}

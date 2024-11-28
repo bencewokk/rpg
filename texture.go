@@ -115,7 +115,7 @@ var (
 	tree_S2 *ebiten.Image = loadPNG("import/prop/tree2.png")
 )
 
-var characterAnimations [4][]*ebiten.Image
+var characterAnimations [6][]*ebiten.Image
 
 func loadChar() {
 
@@ -125,24 +125,38 @@ func loadChar() {
 	characterAnimations[0] = append(characterAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S4.png"))
 	characterAnimations[0] = append(characterAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S5.png"))
 	characterAnimations[0] = append(characterAnimations[0], loadPNG("import/Characters/Character/Front_C_Idle_S6.png"))
+
 	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle.png"))
 	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle_S2.png"))
 	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle_S3.png"))
 	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle_S4.png"))
 	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle_S5.png"))
 	characterAnimations[1] = append(characterAnimations[1], loadPNG("import/Characters/Character/Back_C_Idle_S6.png"))
+
 	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running.png"))
 	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S2.png"))
 	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S3.png"))
 	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S4.png"))
 	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S5.png"))
 	characterAnimations[2] = append(characterAnimations[2], loadPNG("import/Characters/Character/Front_C_Running_S6.png"))
+
 	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running.png"))
 	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running_S2.png"))
 	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running_S3.png"))
 	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running_S4.png"))
 	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running_S5.png"))
 	characterAnimations[3] = append(characterAnimations[3], loadPNG("import/Characters/Character/Back_C_Running_S6.png"))
+
+	characterAnimations[4] = append(characterAnimations[4], loadPNG("import/Characters/Character/Front_C_Attacking_S1.png"))
+	characterAnimations[4] = append(characterAnimations[4], loadPNG("import/Characters/Character/Front_C_Attacking_S2.png"))
+	characterAnimations[4] = append(characterAnimations[4], loadPNG("import/Characters/Character/Front_C_Attacking_S3.png"))
+	characterAnimations[4] = append(characterAnimations[4], loadPNG("import/Characters/Character/Front_C_Attacking_S4.png"))
+
+	characterAnimations[5] = append(characterAnimations[5], loadPNG("import/Characters/Character/Back_C_Attacking_S1.png"))
+	characterAnimations[5] = append(characterAnimations[5], loadPNG("import/Characters/Character/Back_C_Attacking_S2.png"))
+	characterAnimations[5] = append(characterAnimations[5], loadPNG("import/Characters/Character/Back_C_Attacking_S3.png"))
+	characterAnimations[5] = append(characterAnimations[5], loadPNG("import/Characters/Character/Back_C_Attacking_S4.png"))
+
 }
 
 var enemyAnimations [2][6]*ebiten.Image

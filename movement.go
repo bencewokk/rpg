@@ -2,7 +2,6 @@ package main
 
 //
 import (
-	"fmt"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -193,8 +192,9 @@ func (c *character) checkMovement() {
 		c.speed = CHARSPEED
 	}
 
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButton0) {
-		fmt.Println("attacking")
+	c.sinceAttack -= game.deltatime
+	c.attackCooldown -= game.deltatime
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButton0) && c.attackCooldown < 0 && !c.attacking {
+		c.attack()
 	}
-
 }
