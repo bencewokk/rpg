@@ -17,7 +17,8 @@ type enemy struct {
 	texture *ebiten.Image
 	id      int
 
-	speed float32
+	speed    float32
+	velocity float32
 
 	offsetForAnimation int
 	animationState     int

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"math/rand/v2"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -102,6 +103,27 @@ func (c *character) updateAnimation() {
 	}
 }
 
+func PushAway(enemy *enemy, character *character, pushStrength float32) pos {
+	// Calculate direction vector
+	dx := enemy.pos.float_x - character.pos.float_x
+	dy := enemy.pos.float_y - character.pos.float_y
+
+	// Calculate the magnitude (distance)
+	distance := float32(math.Sqrt(float64(dx*dx + dy*dy)))
+
+	// Normalize the direction vector and avoid division by zero
+	if distance != 0 {
+		dx /= distance
+		dy /= distance
+	}
+
+	// Push enemy away by the normalized direction scaled by pushStrength
+	enemy.pos.float_x += dx * pushStrength
+	enemy.pos.float_y += dy * pushStrength
+
+	return enemy.pos
+}
+
 func (c *character) attack() {
 	c.attacking = true
 	c.sinceAttack = 0.52
@@ -113,6 +135,7 @@ func (c *character) attack() {
 		es[i].hp -= float32(5 / len(es) * 4)
 		es[i].hit = true
 		es[i].sinceHit = 0.2
+		es[i].pos = PushAway(es[i], c, 30)
 	}
 
 }
