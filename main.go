@@ -117,8 +117,6 @@ type Game struct {
 
 // Update method of the Game
 func (g *Game) Update() error {
-
-	curspos.updatemouse()
 	go checkZoom()
 
 	if optionsbtn.pressed {

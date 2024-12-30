@@ -99,24 +99,17 @@ type slider struct {
 
 // ptid calculates and returns the tile coordinates based on the given position.
 func ptid(pos pos) (int, int) {
-	// Calculate the tile coordinates based on the character's position
 	x := int(pos.float_x / screendivisor)
 	y := int(pos.float_y / screendivisor)
 	return x, y
 }
 
-// Pos variables for cursor
+// pos variables for cursor
 var (
 	curspos pos
 )
 
-func (cursor *pos) updatemouse() {
-	// Get the mouse position
-	intmx, intmy := ebiten.CursorPosition()
-	curspos.float_x, curspos.float_y = float32(intmx), float32(intmy)
-}
-
-// Create a new button
+// create a new button
 func createButton(title string, width, height float32, pressedColor, hoveredColor, inactiveColor color.RGBA, pos pos) button {
 	return button{
 		title:         title,
@@ -129,7 +122,7 @@ func createButton(title string, width, height float32, pressedColor, hoveredColo
 	}
 }
 
-// Create a new slider
+// create a new slider
 func createSlider(title string, width, height float32, minval, maxval int, pressedColor, hoveredColor, inactiveColor color.RGBA, pos pos) slider {
 	kb := createPos(pos.float_x+8, pos.float_y+4)
 	return slider{
@@ -170,7 +163,7 @@ func inSlide(s *slider) bool {
 	return false
 }
 
-// DrawSlider draws a slider and checks for interaction
+// drawSlider draws a slider and checks for interaction
 func (s *slider) DrawSlider(screen *ebiten.Image) {
 	// Check if the cursor is hovering over the knob
 	if curspos.float_x >= s.knobpos.float_x &&
@@ -222,7 +215,7 @@ func (s *slider) DrawSlider(screen *ebiten.Image) {
 
 }
 
-// DrawButton draws the button and checks for interaction
+// drawButton draws the button and checks for interaction
 func (b *button) DrawButton(screen *ebiten.Image) {
 	// Check if the mouse is inside the button's area
 	if curspos.float_x >= b.pos.float_x &&

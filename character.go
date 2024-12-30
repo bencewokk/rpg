@@ -108,7 +108,6 @@ func PushAway(enemy *enemy, character *character, pushStrength float32) pos {
 	dx := enemy.pos.float_x - character.pos.float_x
 	dy := enemy.pos.float_y - character.pos.float_y
 
-	// Calculate the magnitude (distance)
 	distance := float32(math.Sqrt(float64(dx*dx + dy*dy)))
 
 	// Normalize the direction vector and avoid division by zero
@@ -135,7 +134,7 @@ func (c *character) attack() {
 		es[i].hp -= float32(5 / len(es) * 4)
 		es[i].hit = true
 		es[i].sinceHit = 0.2
-		es[i].pos = PushAway(es[i], c, 30)
+		PushAway(es[i], c, 30)
 	}
 
 }
