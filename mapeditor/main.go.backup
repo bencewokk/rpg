@@ -15,9 +15,78 @@ import (
 const (
 	windowWidth  = 1200
 	windowHeight = 800
-	// Match main game's screendivisor/intscreendivisor (30) so node coordinates align 1:1.
-	// This removes the apparent "scaled & shifted" effect that came from using 32 here.
-	tileSize = 30
+	tileSize     = 32
+)
+	// Draw paths first (so they appear behind nodes)
+	for _, path := range e.mapData.Paths {
+		nodeA := e.mapData.FindNodeByID(path.NodeAID)
+		nodeB := e.mapData.FindNodeByID(path.NodeBID)
+		
+		if nodeA != nil && nodeB != nil {
+			// Convert world coordinates to screen coordinates
+			screenX1 := (float64(nodeA.Pos.X)-e.camera.X)*e.camera.Zoom + float64(windowWidth)/2
+			screenY1 := (float64(nodeA.Pos.Y)-e.camera.Y)*e.camera.Zoom + float64(windowHeight)/2
+			screenX2 := (float64(nodeB.Pos.X)-e.camera.X)*e.camera.Zoom + float64(windowWidth)/2
+			screenY2 := (float64(nodeB.Pos.Y)-e.camera.Y)*e.camera.Zoom + float64(windowHeight)/2
+			
+			// Draw path line
+			vector.StrokeLine(screen, float32(screenX1), float32(screenY1), float32(screenX2), float32(screenY2), 2, color.RGBA{100, 100, 255, 255}, false)
+		}
+	}
+	
+	// Draw path being created
+	if e.tools.IsCreatingPath() {
+		startNodeID := e.tools.GetPathStartNodeID()
+		startNode := e.mapData.FindNodeByID(startNodeID)
+		if startNode != nil {
+			mouseX, mouseY := ebiten.CursorPosition()
+			screenX1 := (float64(startNode.Pos.X)-e.camera.X)*e.camera.Zoom + float64(windowWidth)/2
+			screenY1 := (float64(startNode.Pos.Y)-e.camera.Y)*e.camera.Zoom + float64(windowHeight)/2
+			
+			// Draw preview line to mouse cursor
+			vector.StrokeLine(screen, float32(screenX1), float32(screenY1), float32(mouseX), float32(mouseY), 2, color.RGBA{255, 255, 100, 128}, false)
+		}
+	}
+	
+	// Draw nodes
+	for _, node := range e.mapData.Nodes {
+		// Convert world coordinates to screen coordinates
+		screenX := (float64(node.Pos.X)-e.camera.X)*e.camera.Zoom + float64(windowWidth)/2
+		screenY := (float64(node.Pos.Y)-e.camera.Y)*e.camera.Zoom + float64(windowHeight)/2
+		
+		// Choose node color based on selection
+		nodeColor := color.RGBA{255, 100, 100, 255} // Default red
+		if node.ID == e.tools.GetSelectedNodeID() {
+			nodeColor = color.RGBA{100, 255, 100, 255} // Green if selected
+		}
+		if node.ID == e.tools.GetPathStartNodeID() {
+			nodeColor = color.RGBA{255, 255, 100, 255} // Yellow if path start
+		}
+		
+		// Draw node circle
+		radius := float32(8.0 * e.camera.Zoom)
+		if radius < 4 {
+			radius = 4
+		}
+		vector.DrawFilledCircle(screen, float32(screenX), float32(screenY), radius, nodeColor, false)
+		vector.StrokeCircle(screen, float32(screenX), float32(screenY), radius, 2, color.RGBA{0, 0, 0, 255}, false)
+		
+		// Draw node ID
+		if e.camera.Zoom >= 0.5 { // Only show IDs when zoomed in enough
+			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", node.ID), int(screenX)-5, int(screenY)-20)
+		}
+	}
+}
+
+func (e *MapEditor) drawGrid(screen *ebiten.Image) {thub.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+)
+
+const (
+	windowWidth  = 1200
+	windowHeight = 800
+	tileSize     = 32
 )
 
 type MapEditor struct {
@@ -35,13 +104,13 @@ func (e *MapEditor) Update() error {
 	// Handle file operations
 	if ebiten.IsKeyPressed(ebiten.KeyControl) {
 		if inpututil.IsKeyJustPressed(ebiten.KeyS) {
-			mapio.SaveMapToFile(e.mapData, "../map.txt")
+			mapio.SaveMapToFile(e.mapData, "map.txt")
 			fmt.Println("Map saved!")
 			e.ui.ShowStatus("Map saved!")
 		}
 		if inpututil.IsKeyJustPressed(ebiten.KeyO) {
 			var err error
-			e.mapData, err = mapio.LoadMapFromFile("../map.txt")
+			e.mapData, err = mapio.LoadMapFromFile("map.txt")
 			if err != nil {
 				fmt.Printf("Error loading map: %v\n", err)
 				e.ui.ShowStatus("Error loading map!")
@@ -76,38 +145,27 @@ func (e *MapEditor) Update() error {
 	return nil
 }
 
-// Helper functions to replicate main game's offsetsx/offsetsy exactly
-func (e *MapEditor) offsetsx(tobeoffset float32) float32 {
-	// Use our window width but same coordinate transformation logic
-	return ((tobeoffset-float32(e.camera.X))*float32(e.camera.Zoom) + float32(windowWidth)/2)
-}
-
-func (e *MapEditor) offsetsy(tobeoffset float32) float32 {
-	// Use our window height but same coordinate transformation logic
-	return ((tobeoffset-float32(e.camera.Y))*float32(e.camera.Zoom) + float32(windowHeight)/2)
-}
-
 func (e *MapEditor) updateTools() {
 	// Sync tool system with UI selection
 	e.tools.SetTool(e.ui.GetSelectedTool())
-
+	
 	mouseX, mouseY := ebiten.CursorPosition()
-
+	
 	// Don't interact if mouse is over UI area
 	if mouseX < 120 {
 		return
 	}
-
+	
 	// Convert screen coordinates to world coordinates
 	worldX, worldY := e.camera.ScreenToWorld(mouseX, mouseY)
-
+	
 	// Get input states
 	leftClick := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)
 	rightClick := inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight)
 	leftHeld := ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft)
-
+	
 	currentTool := e.ui.GetSelectedTool()
-
+	
 	if currentTool == ToolPaint || currentTool == ToolBucket {
 		// Handle painting/bucket with left mouse button held
 		if leftHeld {
@@ -131,7 +189,7 @@ func (e *MapEditor) Draw(screen *ebiten.Image) {
 
 	// Draw the map
 	e.drawMap(screen)
-
+	
 	// Draw nodes and paths
 	e.drawNodes(screen)
 
@@ -177,9 +235,9 @@ func (e *MapEditor) drawMap(screen *ebiten.Image) {
 				// Apply zoom scaling
 				op.GeoM.Scale(e.camera.Zoom, e.camera.Zoom)
 
-				// Center tiles like in the main game (tile spans center +/- tileSize/2)
-				worldX := float64(x*tileSize - tileSize/2)
-				worldY := float64(y*tileSize - tileSize/2)
+				// Calculate screen position using same approach as main game
+				worldX := float64(x * tileSize)
+				worldY := float64(y * tileSize)
 				screenX := (worldX-e.camera.X)*e.camera.Zoom + float64(windowWidth)/2
 				screenY := (worldY-e.camera.Y)*e.camera.Zoom + float64(windowHeight)/2
 
@@ -188,66 +246,41 @@ func (e *MapEditor) drawMap(screen *ebiten.Image) {
 			}
 		}
 	}
+
+	// Draw grid if enabled
+	if e.ui.ShouldShowGrid() {
+		e.drawGrid(screen, startX, startY, endX, endY)
+	}
 }
 
-func (e *MapEditor) drawNodes(screen *ebiten.Image) {
-	// Draw paths first (so they appear behind nodes)
-	for _, path := range e.mapData.Paths {
-		nodeA := e.mapData.FindNodeByID(path.NodeAID)
-		nodeB := e.mapData.FindNodeByID(path.NodeBID)
+func (e *MapEditor) drawGrid(screen *ebiten.Image, startX, startY, endX, endY int) {
+	gridColor := color.RGBA{100, 100, 100, 128}
 
-		if nodeA != nil && nodeB != nil {
-			// Use exact same coordinate transformation as main game
-			screenX1 := e.offsetsx(nodeA.Pos.X)
-			screenY1 := e.offsetsy(nodeA.Pos.Y)
-			screenX2 := e.offsetsx(nodeB.Pos.X)
-			screenY2 := e.offsetsy(nodeB.Pos.Y)
+	// Draw vertical lines using main game coordinate system
+	for x := startX; x <= endX; x++ {
+		worldX := float64(x * tileSize)
+		screenX := float32((worldX-e.camera.X)*e.camera.Zoom + float64(windowWidth)/2)
 
-			// Draw path line
-			vector.StrokeLine(screen, screenX1, screenY1, screenX2, screenY2, 2, color.RGBA{100, 100, 255, 255}, false)
+		if screenX >= 0 && screenX < windowWidth {
+			worldStartY := float64(startY * tileSize)
+			worldEndY := float64(endY * tileSize)
+			startScreenY := float32((worldStartY-e.camera.Y)*e.camera.Zoom + float64(windowHeight)/2)
+			endScreenY := float32((worldEndY-e.camera.Y)*e.camera.Zoom + float64(windowHeight)/2)
+			vector.StrokeLine(screen, screenX, startScreenY, screenX, endScreenY, 1, gridColor, false)
 		}
 	}
 
-	// Draw path being created
-	if e.tools.IsCreatingPath() {
-		startNodeID := e.tools.GetPathStartNodeID()
-		startNode := e.mapData.FindNodeByID(startNodeID)
-		if startNode != nil {
-			mouseX, mouseY := ebiten.CursorPosition()
-			screenX1 := e.offsetsx(startNode.Pos.X)
-			screenY1 := e.offsetsy(startNode.Pos.Y)
+	// Draw horizontal lines using main game coordinate system
+	for y := startY; y <= endY; y++ {
+		worldY := float64(y * tileSize)
+		screenY := float32((worldY-e.camera.Y)*e.camera.Zoom + float64(windowHeight)/2)
 
-			// Draw preview line to mouse cursor
-			vector.StrokeLine(screen, screenX1, screenY1, float32(mouseX), float32(mouseY), 2, color.RGBA{255, 255, 100, 128}, false)
-		}
-	}
-
-	// Draw nodes
-	for _, node := range e.mapData.Nodes {
-		// Use exact same coordinate transformation as main game
-		screenX := e.offsetsx(node.Pos.X)
-		screenY := e.offsetsy(node.Pos.Y)
-
-		// Choose node color based on selection
-		nodeColor := color.RGBA{255, 100, 100, 255} // Default red
-		if node.ID == e.tools.GetSelectedNodeID() {
-			nodeColor = color.RGBA{100, 255, 100, 255} // Green if selected
-		}
-		if node.ID == e.tools.GetPathStartNodeID() {
-			nodeColor = color.RGBA{255, 255, 100, 255} // Yellow if path start
-		}
-
-		// Draw node circle
-		radius := float32(8.0 * e.camera.Zoom)
-		if radius < 4 {
-			radius = 4
-		}
-		vector.DrawFilledCircle(screen, screenX, screenY, radius, nodeColor, false)
-		vector.StrokeCircle(screen, screenX, screenY, radius, 2, color.RGBA{0, 0, 0, 255}, false)
-
-		// Draw node ID
-		if e.camera.Zoom >= 0.5 { // Only show IDs when zoomed in enough
-			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d", node.ID), int(screenX)-5, int(screenY)-20)
+		if screenY >= 0 && screenY < windowHeight {
+			worldStartX := float64(startX * tileSize)
+			worldEndX := float64(endX * tileSize)
+			startScreenX := float32((worldStartX-e.camera.X)*e.camera.Zoom + float64(windowWidth)/2)
+			endScreenX := float32((worldEndX-e.camera.X)*e.camera.Zoom + float64(windowWidth)/2)
+			vector.StrokeLine(screen, startScreenX, screenY, endScreenX, screenY, 1, gridColor, false)
 		}
 	}
 }
@@ -267,17 +300,16 @@ func main() {
 	editor.assets = NewAssetManager()
 
 	// Try to load existing map from the main project
-	if mapData, err := mapio.LoadMapFromFile("../map.txt"); err != nil {
+	if mapData, err := mapio.LoadMapFromFile("map.txt"); err != nil {
 		fmt.Printf("Could not load existing map: %v\n", err)
 		fmt.Println("Starting with empty map...")
 	} else {
 		editor.mapData = mapData
-		fmt.Printf("Loaded map: %dx%d with %d nodes, %d paths, %d sprites\n",
-			mapData.Width, mapData.Height, len(mapData.Nodes), len(mapData.Paths), len(mapData.Sprites))
+		fmt.Printf("Loaded existing map: %dx%d\n", mapData.Width, mapData.Height)
 	}
 
 	// Try to load assets from import directory
-	if err := editor.assets.LoadAssets("../import"); err != nil {
+	if err := editor.assets.LoadAssets("import"); err != nil {
 		fmt.Printf("Could not load assets: %v\n", err)
 		fmt.Println("Using fallback colors...")
 	}

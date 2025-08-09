@@ -4,7 +4,12 @@ go 1.22.0
 
 toolchain go1.23.1
 
-require github.com/hajimehoshi/ebiten/v2 v2.8.0
+replace rpg/mapio => ../mapio
+
+require (
+	github.com/hajimehoshi/ebiten/v2 v2.8.0
+	rpg/mapio v0.0.0-00010101000000-000000000000
+)
 
 require (
 	github.com/ebitengine/gomobile v0.0.0-20240911145611-4856209ac325 // indirect

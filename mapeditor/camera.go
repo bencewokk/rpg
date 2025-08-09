@@ -14,8 +14,8 @@ type Camera struct {
 
 func NewCamera() Camera {
 	return Camera{
-		X:    0,
-		Y:    0,
+		X:    500,  // Start somewhere near the middle of where nodes exist
+		Y:    500,  // Start somewhere near the middle of where nodes exist
 		Zoom: 1.0,
 	}
 }
