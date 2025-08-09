@@ -194,7 +194,11 @@ func (c *character) checkMovement() {
 
 	c.sinceAttack -= game.deltatime
 	c.attackCooldown -= game.deltatime
-	if ebiten.IsMouseButtonPressed(ebiten.MouseButton0) && c.attackCooldown < 0 && !c.attacking {
-		c.attack()
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButton0) {
+		if !c.attacking && c.attackCooldown <= 0 {
+			c.attack()
+		} else if c.attacking && c.sinceAttack < 0.15 { // queue late phase
+			c.queuedAttack = true
+		}
 	}
 }

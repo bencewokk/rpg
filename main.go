@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -149,6 +148,9 @@ func (g *Game) Update() error {
 
 	// (Animation cycle handled per AnimationPlayer now)
 
+	// Damage indicators
+	updateDamageIndicators(game.deltatime)
+
 	return nil
 }
 
@@ -208,17 +210,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			drawables[i].draw(screen)
 		}
 
-		for i := 0; i < len(game.currentmap.paths); i++ {
-			drawPath(screen, game.currentmap.paths[i])
-		}
+		// for i := 0; i < len(game.currentmap.paths); i++ {
+		// 	drawPath(screen, game.currentmap.paths[i])
+		// }
 
-		for i := 0; i < len(game.currentmap.nodes); i++ {
-			n := game.currentmap.nodes[i]
-			ebitenutil.DebugPrintAt(screen, strconv.Itoa(n.id), int(offsetsx(n.pos.float_x)), int(offsetsy(n.pos.float_y)))
-		}
+		// for i := 0; i < len(game.currentmap.nodes); i++ {
+		// 	n := game.currentmap.nodes[i]
+		// 	ebitenutil.DebugPrintAt(screen, strconv.Itoa(n.id), int(offsetsx(n.pos.float_x)), int(offsetsy(n.pos.float_y)))
+		// }
 
 		p := 0
 		game.currentmap.players[p].drawUi()
+
+		// Draw floating damage after entities so it's on top
+		drawDamageIndicators()
 
 	}
 

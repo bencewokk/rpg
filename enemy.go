@@ -8,8 +8,12 @@ import (
 )
 
 const (
-	ENEMYNORMALSPEED = 50
-	ENEMYALLERTSPEED = 100
+	ENEMYNORMALSPEED = 70  // was 50
+	ENEMYALLERTSPEED = 130 // was 100
+	// Knockback tuning
+	KNOCKBACK_BASE_STRENGTH = 520  // initial velocity magnitude applied on hit
+	KNOCKBACK_MAX_STACK     = 780  // cap on stacked knockback velocity
+	KNOCKBACK_DURATION      = 0.18 // time (s) during which knockback overrides AI movement
 )
 
 type enemy struct {
@@ -37,6 +41,11 @@ type enemy struct {
 	hp       float32
 	hit      bool
 	sinceHit float64
+
+	// knockback state
+	knockbackVX   float32
+	knockbackVY   float32
+	knockbackTime float64
 
 	// unified animation player
 	animPlayer      AnimationPlayer
@@ -163,6 +172,21 @@ func (e *enemy) updateState() {
 	if e.sinceHit < 0 {
 
 		e.hit = false
+	}
+
+	// Apply knockback if active (takes precedence over normal AI movement)
+	if e.knockbackTime > 0 {
+		dt := float32(game.deltatime)
+		e.knockbackTime -= game.deltatime
+		e.pos.float_x += e.knockbackVX * dt
+		e.pos.float_y += e.knockbackVY * dt
+		// Exponential damping for a smooth ease-out feel
+		damping := float32(math.Exp(-8 * game.deltatime))
+		e.knockbackVX *= damping
+		e.knockbackVY *= damping
+		// Flag as moving so run animation can play (optional)
+		e.animationState = 1
+		return
 	}
 
 	if Distance(e.pos, nearestCharacter(e.pos).pos) > 100 && !e.chasing {

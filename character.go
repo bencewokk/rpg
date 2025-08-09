@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	CHARSPEED   = 200
-	DASHSPEED   = 700
-	BOOSTSPEED  = 300
-	ATTACKSPEED = 100
+	CHARSPEED   = 260 // was 200
+	DASHSPEED   = 800 // was 700
+	BOOSTSPEED  = 340 // was 300
+	ATTACKSPEED = 160 // character movement speed while attacking
 )
 
 type character struct {
@@ -38,6 +38,9 @@ type character struct {
 	sinceAttack              float64
 	attackCooldown           float64
 	offsetForAnimationAttack int
+
+	// queued fast-paced combat
+	queuedAttack bool
 
 	// New unified animation player
 	animPlayer AnimationPlayer
@@ -116,47 +119,62 @@ func (c *character) updateAnimation() {
 
 	if c.attacking {
 		c.speed = ATTACKSPEED
-		if c.sinceAttack < 0 { // end attack
+		if c.sinceAttack < 0 { // end of current swing
+			if c.queuedAttack {
+				c.queuedAttack = false
+				c.attackCooldown = 0 // chain immediately
+				c.attack()           // start next attack in combo
+				return
+			}
 			c.attacking = false
 			c.speed = CHARSPEED
-			c.attackCooldown = 0.5
+			c.attackCooldown = 0.25 // was 0.5
 		}
 	}
 	c.running = false // reset flagged each movement update
 }
 
-func PushAway(enemy *enemy, character *character, pushStrength float32) pos {
-	// Calculate direction vector
-	dx := enemy.pos.float_x - character.pos.float_x
-	dy := enemy.pos.float_y - character.pos.float_y
-
-	distance := float32(math.Sqrt(float64(dx*dx + dy*dy)))
-
-	// Normalize the direction vector and avoid division by zero
-	if distance != 0 {
-		dx /= distance
-		dy /= distance
+// applyKnockback sets or stacks a velocity-based knockback on an enemy.
+func applyKnockback(e *enemy, from *character, strength float32) {
+	dx := e.pos.float_x - from.pos.float_x
+	dy := e.pos.float_y - from.pos.float_y
+	dist := float32(math.Sqrt(float64(dx*dx + dy*dy)))
+	if dist > 0.0001 {
+		dx /= dist
+		dy /= dist
+	} else {
+		dx, dy = 0, -1 // fallback upward
 	}
-
-	// Push enemy away by the normalized direction scaled by pushStrength
-	enemy.pos.float_x += dx * pushStrength
-	enemy.pos.float_y += dy * pushStrength
-
-	return enemy.pos
+	// New target velocity to add
+	addVX := dx * strength
+	addVY := dy * strength
+	// Stack but clamp to max magnitude
+	e.knockbackVX += addVX
+	e.knockbackVY += addVY
+	mag := float32(math.Sqrt(float64(e.knockbackVX*e.knockbackVX + e.knockbackVY*e.knockbackVY)))
+	if mag > KNOCKBACK_MAX_STACK {
+		scale := KNOCKBACK_MAX_STACK / mag
+		e.knockbackVX *= scale
+		e.knockbackVY *= scale
+	}
+	e.knockbackTime = KNOCKBACK_DURATION
 }
 
 func (c *character) attack() {
 	c.attacking = true
-	c.sinceAttack = 0.52
+	c.sinceAttack = 0.32           // was 0.52
 	c.offsetForAnimationAttack = 0 // legacy field, retained for now
 
 	es := enemiesInRange(c.pos, 80)
 
 	for i := 0; i < len(es); i++ {
-		es[i].hp -= float32(5 / len(es) * 4)
-		es[i].hit = true
-		es[i].sinceHit = 0.2
-		PushAway(es[i], c, 30)
+		e := es[i]
+		e.hp -= float32(5 / len(es) * 4)
+		e.hit = true
+		e.sinceHit = 0.2
+		// Velocity-based knockback (stronger if closer to center of attack)
+		applyKnockback(e, c, KNOCKBACK_BASE_STRENGTH)
+		AddDamageIndicator(e.pos, 5)
 	}
 
 }
