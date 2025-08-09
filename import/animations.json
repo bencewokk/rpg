@@ -1,0 +1,102 @@
+{
+  "character": [
+    {
+      "name": "idle_front",
+      "frames": [
+        "import/Characters/Character/Front_C_Idle.png",
+        "import/Characters/Character/Front_C_Idle_S2.png",
+        "import/Characters/Character/Front_C_Idle_S3.png",
+        "import/Characters/Character/Front_C_Idle_S4.png",
+        "import/Characters/Character/Front_C_Idle_S5.png",
+        "import/Characters/Character/Front_C_Idle_S6.png"
+      ],
+      "frame_duration": 0.13,
+      "loop": true
+    },
+    {
+      "name": "idle_back",
+      "frames": [
+        "import/Characters/Character/Back_C_Idle.png",
+        "import/Characters/Character/Back_C_Idle_S2.png",
+        "import/Characters/Character/Back_C_Idle_S3.png",
+        "import/Characters/Character/Back_C_Idle_S4.png",
+        "import/Characters/Character/Back_C_Idle_S5.png",
+        "import/Characters/Character/Back_C_Idle_S6.png"
+      ],
+      "frame_duration": 0.13,
+      "loop": true
+    },
+    {
+      "name": "run_front",
+      "frames": [
+        "import/Characters/Character/Front_C_Running.png",
+        "import/Characters/Character/Front_C_Running_S2.png",
+        "import/Characters/Character/Front_C_Running_S3.png",
+        "import/Characters/Character/Front_C_Running_S4.png",
+        "import/Characters/Character/Front_C_Running_S5.png",
+        "import/Characters/Character/Front_C_Running_S6.png"
+      ],
+      "frame_duration": 0.09,
+      "loop": true
+    },
+    {
+      "name": "run_back",
+      "frames": [
+        "import/Characters/Character/Back_C_Running.png",
+        "import/Characters/Character/Back_C_Running_S2.png",
+        "import/Characters/Character/Back_C_Running_S3.png",
+        "import/Characters/Character/Back_C_Running_S4.png",
+        "import/Characters/Character/Back_C_Running_S5.png",
+        "import/Characters/Character/Back_C_Running_S6.png"
+      ],
+      "frame_duration": 0.09,
+      "loop": true
+    },
+    {
+      "name": "attack_front",
+      "frames": [
+        "import/Characters/Character/Front_C_Attacking_S1.png",
+        "import/Characters/Character/Front_C_Attacking_S2.png",
+        "import/Characters/Character/Front_C_Attacking_S3.png",
+        "import/Characters/Character/Front_C_Attacking_S4.png"
+      ],
+      "frame_duration": 0.11,
+      "loop": false
+    },
+    {
+      "name": "attack_back",
+      "frames": [
+        "import/Characters/Character/Back_C_Attacking_S1.png",
+        "import/Characters/Character/Back_C_Attacking_S2.png",
+        "import/Characters/Character/Back_C_Attacking_S3.png",
+        "import/Characters/Character/Back_C_Attacking_S4.png"
+      ],
+      "frame_duration": 0.11,
+      "loop": false
+    }
+  ],
+  "enemy": [
+    {
+      "name": "idle",
+      "frames": [
+        "import/Characters/Enemy/enemyidle1.png",
+        "import/Characters/Enemy/enemyidle2.png",
+        "import/Characters/Enemy/enemyidle3.png",
+        "import/Characters/Enemy/enemyidle4.png"
+      ],
+      "frame_duration": 0.15,
+      "loop": true
+    },
+    {
+      "name": "run",
+      "frames": [
+        "import/Characters/Enemy/enemyrun1.png",
+        "import/Characters/Enemy/enemyrun2.png",
+        "import/Characters/Enemy/enemyrun3.png",
+        "import/Characters/Enemy/enemyrun4.png"
+      ],
+      "frame_duration": 0.1,
+      "loop": true
+    }
+  ]
+}

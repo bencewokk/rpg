@@ -89,7 +89,8 @@ func (t *ToolSystem) Update(mapData *mapio.MapData, camera *Camera) {
 
 // PaintTile paints a tile at the given coordinates with the specified type
 func (t *ToolSystem) PaintTile(mapData *mapio.MapData, tileX, tileY, tileType int) {
-	if t.currentTool == ToolPaint {
+	switch t.currentTool {
+	case ToolPaint:
 		// Record single tile change for undo
 		oldValue := mapData.GetTile(tileX, tileY)
 		if oldValue != tileType {
@@ -97,7 +98,7 @@ func (t *ToolSystem) PaintTile(mapData *mapio.MapData, tileX, tileY, tileType in
 			t.addToHistory(Action{ActionType: "paint", Changes: changes})
 			mapData.SetTile(tileX, tileY, tileType)
 		}
-	} else if t.currentTool == ToolBucket {
+	case ToolBucket:
 		// Bucket fill - we'll collect all changes first
 		changes := t.getBucketFillChanges(mapData, tileX, tileY, tileType)
 		if len(changes) > 0 {

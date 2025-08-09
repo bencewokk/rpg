@@ -108,7 +108,8 @@ func (e *MapEditor) updateTools() {
 
 	currentTool := e.ui.GetSelectedTool()
 
-	if currentTool == ToolPaint || currentTool == ToolBucket {
+	switch currentTool {
+	case ToolPaint, ToolBucket:
 		// Handle painting/bucket with left mouse button held
 		if leftHeld {
 			// Convert to tile coordinates
@@ -116,10 +117,10 @@ func (e *MapEditor) updateTools() {
 			selectedType := e.ui.GetSelectedTileType()
 			e.tools.PaintTile(e.mapData, tileX, tileY, selectedType)
 		}
-	} else if currentTool == ToolNode {
+	case ToolNode:
 		// Handle node tool
 		e.tools.HandleNodeTool(e.mapData, worldX, worldY, leftClick, rightClick)
-	} else if currentTool == ToolPath {
+	case ToolPath:
 		// Handle path tool
 		e.tools.HandlePathTool(e.mapData, worldX, worldY, leftClick, rightClick)
 	}

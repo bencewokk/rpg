@@ -38,6 +38,11 @@ type character struct {
 	sinceAttack              float64
 	attackCooldown           float64
 	offsetForAnimationAttack int
+
+	// New unified animation player
+	animPlayer AnimationPlayer
+	// cached state to decide which animation to play
+	currentAnimName string
 }
 
 func createCharacter() {
@@ -82,25 +87,42 @@ func (c *character) updateCamera() {
 }
 
 func (c *character) updateAnimation() {
-	if !c.attacking {
-		if c.running {
-			c.animationState = 2
-		} else {
-			c.animationState = 0
-		}
-
-		c.texture = characterAnimations[c.animationState+c.facingNorth][(animationCycle+c.offsetForAnimation)%6]
-		c.running = false
+	// Decide desired animation key
+	var desired string
+	facing := "front"
+	if c.facingNorth == 1 {
+		facing = "back"
+	}
+	if c.attacking {
+		desired = "attack_" + facing
+	} else if c.running {
+		desired = "run_" + facing
 	} else {
+		desired = "idle_" + facing
+	}
+
+	if desired != c.currentAnimName {
+		anim := animationManager.Get("character", desired)
+		if anim != nil {
+			c.animPlayer.SetAnimation(anim, true)
+			c.currentAnimName = desired
+		}
+	}
+
+	img := c.animPlayer.Update(game.deltatime)
+	if img != nil {
+		c.texture = img
+	}
+
+	if c.attacking {
 		c.speed = ATTACKSPEED
-		c.animationState = 4
-		c.texture = characterAnimations[c.animationState+c.facingNorth][(animationCycle+c.offsetForAnimation-c.offsetForAnimationAttack)%4]
-		if c.sinceAttack < 0 {
+		if c.sinceAttack < 0 { // end attack
 			c.attacking = false
 			c.speed = CHARSPEED
 			c.attackCooldown = 0.5
 		}
 	}
+	c.running = false // reset flagged each movement update
 }
 
 func PushAway(enemy *enemy, character *character, pushStrength float32) pos {
@@ -126,7 +148,7 @@ func PushAway(enemy *enemy, character *character, pushStrength float32) pos {
 func (c *character) attack() {
 	c.attacking = true
 	c.sinceAttack = 0.52
-	c.offsetForAnimationAttack = animationCycle
+	c.offsetForAnimationAttack = 0 // legacy field, retained for now
 
 	es := enemiesInRange(c.pos, 80)
 

@@ -37,6 +37,10 @@ type enemy struct {
 	hp       float32
 	hit      bool
 	sinceHit float64
+
+	// unified animation player
+	animPlayer      AnimationPlayer
+	currentAnimName string
 }
 
 func enemiesInRange(pos pos, distance float32) []*enemy {
@@ -67,7 +71,22 @@ func (e *enemy) todoEnemy() {
 }
 
 func (e *enemy) updateAnimation() {
-	e.texture = enemyAnimations[e.animationState][(animationCycle+e.offsetForAnimation)%6]
+	// Decide desired animation
+	desired := "idle"
+	if e.animationState == 1 { // moving
+		desired = "run"
+	}
+	if desired != e.currentAnimName {
+		anim := animationManager.Get("enemy", desired)
+		if anim != nil {
+			e.animPlayer.SetAnimation(anim, true)
+			e.currentAnimName = desired
+		}
+	}
+	img := e.animPlayer.Update(game.deltatime)
+	if img != nil {
+		e.texture = img
+	}
 	e.animationState = 0
 }
 

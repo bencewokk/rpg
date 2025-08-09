@@ -217,21 +217,14 @@ func (s *slider) DrawSlider(screen *ebiten.Image) {
 
 // drawButton draws the button and checks for interaction
 func (b *button) DrawButton(screen *ebiten.Image) {
-	// Check if the mouse is inside the button's area
+	// Only draw here; input handled in UpdateButton
 	if curspos.float_x >= b.pos.float_x &&
 		curspos.float_x <= b.pos.float_x+b.width &&
 		curspos.float_y >= b.pos.float_y &&
 		curspos.float_y <= b.pos.float_y+b.height {
 		b.hovered = true
-		// Check if the left mouse button is pressed
-		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-			b.pressed = true
-		} else {
-			b.pressed = false
-		}
 	} else {
 		b.hovered = false
-		b.pressed = false
 	}
 
 	// Choose color based on button state
@@ -249,4 +242,17 @@ func (b *button) DrawButton(screen *ebiten.Image) {
 
 	// Draw the button title as text
 	ebitenutil.DebugPrintAt(screen, b.title, int(b.pos.float_x+10), int(b.pos.float_y+10))
+}
+
+// UpdateButton processes hover & click state. Call this in Game.Update before using b.pressed.
+func (b *button) UpdateButton() {
+	// Hover detection
+	inside := curspos.float_x >= b.pos.float_x &&
+		curspos.float_x <= b.pos.float_x+b.width &&
+		curspos.float_y >= b.pos.float_y &&
+		curspos.float_y <= b.pos.float_y+b.height
+	b.hovered = inside
+	if inside && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		b.pressed = true
+	}
 }

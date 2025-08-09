@@ -27,6 +27,12 @@ func gameinit() {
 	readMapData()
 	parseTextureAndSprites()
 
+	// Initialize new animation system
+	animationManager = NewAnimationManager()
+	if err := animationManager.LoadManifest("import/animations.json"); err != nil {
+		fmt.Println("Animation manifest load failed:", err)
+	}
+
 	ebiten.SetFullscreen(true)
 	ebiten.SetWindowTitle("rpg")
 
@@ -43,9 +49,6 @@ func gameinit() {
 	createEnemy(createPos(700, 500))
 	createEnemy(createPos(500, 400))
 	createEnemy(createPos(400, 900))
-
-	loadChar()
-	loadEnemy()
 
 	screendivisor = 30
 	intscreendivisor = 30
@@ -119,6 +122,16 @@ type Game struct {
 func (g *Game) Update() error {
 	go checkZoom()
 
+	// Update cursor position
+	cx, cy := ebiten.CursorPosition()
+	curspos.float_x = float32(cx)
+	curspos.float_y = float32(cy)
+
+	// Update buttons (hover/click detection) before using their pressed flags
+	playbtn.UpdateButton()
+	optionsbtn.UpdateButton()
+	options_exitbtn.UpdateButton()
+
 	if optionsbtn.pressed {
 		game.stateid = 1
 	}
@@ -129,7 +142,12 @@ func (g *Game) Update() error {
 		game.stateid = 3
 	}
 
-	updateAnimationCycle()
+	// Reset one-shot pressed state so it doesn't trigger repeatedly
+	playbtn.pressed = false
+	optionsbtn.pressed = false
+	options_exitbtn.pressed = false
+
+	// (Animation cycle handled per AnimationPlayer now)
 
 	return nil
 }
