@@ -10,9 +10,61 @@ The [sprite pack](https://ipyxeloutlookcomar.itch.io/forgottenland) I am using c
 
 ## Controls
 
-- AWSD - movement
-- shift - dashing
-- mousewheel - zooming
+- WASD – Move
+- Shift – Dash
+- Mouse Wheel – Zoom camera
+- E – Talk / interact (NPC dialogue)
+- Space / Enter / Left Click – Advance dialogue when talking
+- ESC – In game: pause / In menus: exit
+- P – Toggle pause
+
+## Current Features
+
+- Tile-based world & multiple terrain textures
+- Player movement, dash & animation system (`animations.json` manifest)
+- Enemies with basic pathfinding
+- Floating damage indicators (randomized drift, crit variation)
+- NPCs with animated sprites & dialogue interaction
+- UI components: buttons (improved visuals), sliders
+- Main menu + options submenu
+- Pause overlay (washed background tint + music volume squash)
+- Looping background music across all states (volume lowered while paused)
+- Integrated simple map editor (`mapeditor/`)
+
+## Build & Run
+
+Requires Go (1.22+ recommended).
+
+```powershell
+go run .
+```
+
+Build binary:
+
+```powershell
+go build -o rpg.exe .
+```
+
+## Assets
+
+Sprite pack: https://ipyxeloutlookcomar.itch.io/forgottenland (check original license for attribution requirements).
+
+## Roadmap Ideas
+
+- Volume slider in options
+- Quest / branching dialogue system
+- Save / load
+- Particle & combat feedback polish
+- True desaturation / blur shader for pause
+- Configurable keybinds
+- Replace debug font with custom bitmap font
+
+## Known Limitations
+
+- Debug font text rendering
+- No persistence (session-only)
+- Basic AI behaviors
+- Pause overlay is a flat tint (no shader effects yet)
 
 ## Logs
 
@@ -75,5 +127,14 @@ The [sprite pack](https://ipyxeloutlookcomar.itch.io/forgottenland) I am using c
 - Added pathfinding for enemies
 - Started working on basic gameplay and interactions between players and enemies
 
-#### 2024.11.27 - version 0.1.6
+#### 2025.08.08 - version 0.1.6
 - Implemented the mapeditor in this repo instead /bencewokk/mapmaker
+
+#### 2025.08.09 - version 0.1.7
+- Added NPC dialogue system & sprite animation
+- Randomized floating damage indicators (with crit emphasis)
+- Continuous background music (volume squashed on pause instead of stopping)
+- Pause state with washed overlay & menu (Resume/Menu/Exit)
+- Improved button visuals (gradient, border, shadow, hover highlight)
+- Simplified menu background for clarity after ambient prototype
+- Audio volume management refactor (always playing, state-based volume)
