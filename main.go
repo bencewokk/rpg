@@ -1,15 +1,21 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"os"
 	"time"
 
+	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/audio/wav"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 // Screen sizes
@@ -20,6 +26,13 @@ var (
 
 	screendivisor    float32
 	intscreendivisor int
+)
+
+// Audio
+var (
+	audioCtx           *audio.Context
+	menuMusicPlayer    *audio.Player
+	prevMenuMusicState string
 )
 
 func gameinit() {
@@ -42,6 +55,13 @@ func gameinit() {
 	createEnemy(createPos(700, 500))
 	createEnemy(createPos(500, 400))
 	createEnemy(createPos(400, 900))
+
+	// Sample NPC (after enemies so player can interact)
+	createNPC(createPos(600, 600), []string{
+		"Hey there adventurer!",
+		"Nice day to wander the plains, isn't it?",
+		"Come back later, I might have a quest for you.",
+	})
 	createEnemy(createPos(500, 500))
 	createEnemy(createPos(700, 500))
 	createEnemy(createPos(500, 400))
@@ -55,6 +75,44 @@ func gameinit() {
 	intscreendivisor = 30
 
 	game.camera.zoom = 1
+
+	// Initialize audio context & load menu music
+	audioCtx = audio.NewContext(44100)
+	musicPath := "music/rpg main theme.wav"
+	if info, statErr := os.Stat(musicPath); statErr != nil {
+		log.Println("[AUDIO] music file not found:", musicPath, statErr)
+	} else {
+		log.Println("[AUDIO] music file found:", musicPath, "size=", info.Size())
+		f, err := os.Open(musicPath)
+		if err != nil {
+			log.Println("[AUDIO] open error:", err)
+		} else {
+			data, rerr := io.ReadAll(f)
+			f.Close()
+			if rerr != nil {
+				log.Println("[AUDIO] read error:", rerr)
+			} else {
+				log.Println("[AUDIO] read into memory bytes=", len(data))
+				r := bytes.NewReader(data)
+				stream, err := wav.DecodeWithSampleRate(44100, r)
+				if err != nil {
+					log.Println("[AUDIO] decode error:", err)
+				} else {
+					loop := audio.NewInfiniteLoop(stream, stream.Length())
+					p, err := audioCtx.NewPlayer(loop)
+					if err != nil {
+						log.Println("[AUDIO] player create error:", err)
+					} else {
+						p.SetVolume(0.6)
+						menuMusicPlayer = p
+						menuMusicPlayer.Play()
+						prevMenuMusicState = "playing"
+						log.Println("[AUDIO] menu music started (looping, vol=0.6)")
+					}
+				}
+			}
+		}
+	}
 
 }
 
@@ -70,6 +128,8 @@ type gamemap struct {
 	//used for rendering and generating the map
 	height int
 	width  int
+	// non-hostile talkable NPCs
+	npcs []*npc
 
 	paths []path
 	nodes []node
@@ -132,6 +192,7 @@ func (g *Game) Update() error {
 	playbtn.UpdateButton()
 	optionsbtn.UpdateButton()
 	options_exitbtn.UpdateButton()
+	exitbtn.UpdateButton()
 
 	if optionsbtn.pressed {
 		game.stateid = 1
@@ -139,19 +200,59 @@ func (g *Game) Update() error {
 	if options_exitbtn.pressed {
 		game.stateid = 0
 	}
-	if playbtn.pressed {
-		game.stateid = 3
+	if playbtn.pressed { game.stateid = 3 }
+	if exitbtn.pressed {
+		fmt.Println("exited with code 0")
+		os.Exit(0)
+	}
+
+	// ESC: from game -> menu; from menu/options -> exit
+	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+		switch game.stateid {
+		case 3:
+			game.stateid = 0
+		case 0, 1:
+			fmt.Println("exited with code 0")
+			os.Exit(0)
+		}
 	}
 
 	// Reset one-shot pressed state so it doesn't trigger repeatedly
 	playbtn.pressed = false
 	optionsbtn.pressed = false
 	options_exitbtn.pressed = false
+	exitbtn.pressed = false
 
 	// (Animation cycle handled per AnimationPlayer now)
 
 	// Damage indicators
 	updateDamageIndicators(game.deltatime)
+
+	// NPC interaction handling (only ingame)
+	if game.stateid == 3 {
+		updateNPCInteractions()
+		updateNPCAnimations(game.deltatime)
+	}
+
+	// Menu music state management
+	if menuMusicPlayer != nil {
+		desiredPlaying := (game.stateid == 0 || game.stateid == 1)
+		currentlyPlaying := menuMusicPlayer.IsPlaying()
+		if desiredPlaying && !currentlyPlaying {
+			menuMusicPlayer.Play()
+		} else if !desiredPlaying && currentlyPlaying {
+			menuMusicPlayer.Pause()
+		}
+		// Debug state change log
+		stateNow := "paused"
+		if menuMusicPlayer.IsPlaying() {
+			stateNow = "playing"
+		}
+		if stateNow != prevMenuMusicState {
+			log.Printf("[AUDIO] menu music state -> %s (stateid=%d)\n", stateNow, game.stateid)
+			prevMenuMusicState = stateNow
+		}
+	}
 
 	return nil
 }
@@ -160,6 +261,7 @@ var (
 	// Case 0
 	playbtn    = createButton("Play", 150, 50, uitransparent, uilightgray, uigray, onearg_createPos(25))
 	optionsbtn = createButton("Options", 150, 50, uitransparent, uilightgray, uigray, createPos(25, 85))
+	exitbtn    = createButton("Exit", 150, 50, uitransparent, uilightgray, uigray, createPos(25, 145))
 
 	// Case 1
 	options_exitbtn = createButton("Back to menu", 150, 50, uitransparent, uilightgray, uigray, onearg_createPos(25))
@@ -177,10 +279,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	game.deltatime = now.Sub(game.lastUpdateTime).Seconds()
 	game.lastUpdateTime = now
 
-	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
-		fmt.Println("exited with code 0")
-		os.Exit(0)
-	}
+	// ESC handling moved to Update for state-aware behavior
 
 	switch game.stateid {
 	case 0:
@@ -188,6 +287,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		playbtn.DrawButton(screen)
 
 		optionsbtn.DrawButton(screen)
+		exitbtn.DrawButton(screen)
 
 	case 1:
 
@@ -226,6 +326,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 		// Draw floating damage after entities so it's on top
 		drawDamageIndicators()
+		// Draw conversation if active
+		drawConversationUI(screen)
 
 	}
 
