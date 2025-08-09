@@ -84,7 +84,9 @@ func (c *character) drawUi() {
 	radius := circleRadius
 	// Thicker ring rendering
 	ringThickness := float32(8)
-	if ringThickness > radius-2 { ringThickness = radius - 2 }
+	if ringThickness > radius-2 {
+		ringThickness = radius - 2
+	}
 	// Base ring background
 	drawFilledCircle(screenGlobal, cx, cy, radius, color.RGBA{25, 25, 32, 200})
 	drawFilledCircle(screenGlobal, cx, cy, radius-ringThickness, color.RGBA{30, 30, 40, 255}) // carve inner hole
@@ -101,7 +103,9 @@ func (c *character) drawUi() {
 		pulse := float32(0.6 + 0.1*math.Sin(pulseTime*4))
 		col := color.RGBA{uint8(60 + 30*pulse), uint8(200 + 40*pulse), uint8(110 + 30*pulse), 255}
 		readyR := radius - ringThickness + 2
-		if readyR < 4 { readyR = radius/2 }
+		if readyR < 4 {
+			readyR = radius / 2
+		}
 		drawFilledCircle(screenGlobal, cx, cy, readyR, col)
 	}
 }
@@ -173,12 +177,20 @@ func drawFilledCircle(dst *ebiten.Image, cx, cy, r float32, col color.Color) {
 // Filled pie wedge (0..pct of full circle clockwise starting at angle 0 (pointing right))
 // drawRingArc draws a ring sector from angle 0 to pct*2PI with given outer radius and thickness
 func drawRingArc(dst *ebiten.Image, cx, cy, outerR, thickness, pct float32, col color.Color) {
-	if pct <= 0 { return }
-	if pct > 1 { pct = 1 }
+	if pct <= 0 {
+		return
+	}
+	if pct > 1 {
+		pct = 1
+	}
 	innerR := outerR - thickness
-	if innerR < 0 { innerR = 0 }
+	if innerR < 0 {
+		innerR = 0
+	}
 	steps := int(64 * pct)
-	if steps < 8 { steps = 8 }
+	if steps < 8 {
+		steps = 8
+	}
 	total := float64(pct) * 2 * math.Pi
 	cx64 := float64(cx)
 	cy64 := float64(cy)

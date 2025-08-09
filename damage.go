@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"math"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
@@ -15,7 +16,8 @@ type DamageIndicator struct {
 	amount      float32
 	lifetime    float64
 	maxLifetime float64
-	vy          float32
+	vx          float32 // horizontal velocity (can be left or right)
+	vy          float32 // vertical velocity (upwards is negative screen movement so we subtract later)
 	col         color.RGBA
 	crit        bool
 }
@@ -23,12 +25,26 @@ type DamageIndicator struct {
 var damageIndicators []*DamageIndicator
 
 func AddDamageIndicator(p pos, amount float32, crit bool) {
+	// Randomize initial small positional jitter so overlapping hits don't completely stack
+	p.float_x += (rand.Float32()*2 - 1) * 8 // +/-8 px jitter
+	p.float_y += (rand.Float32()*2 - 1) * 4 // slight vertical jitter
+
+	// Random velocities: mostly upward, slight horizontal spread
+	vx := (rand.Float32()*2 - 1) * 60 // -60 .. +60 px/sec
+	vy := 70 + rand.Float32()*70      // 70 .. 140 base upward speed
+	// Crits fly a bit faster and higher
+	if crit {
+		vx *= 1.1
+		vy *= 1.25
+	}
+
 	di := &DamageIndicator{
 		pos:         p,
 		amount:      amount,
 		lifetime:    0,
-		maxLifetime: 0.6, // shorter display
-		vy:          50, // faster upward
+		maxLifetime: 0.75, // a touch longer to showcase arc
+		vx:          vx,
+		vy:          vy,
 		col:         color.RGBA{255, 0, 0, 255},
 		crit:        crit,
 	}
@@ -39,7 +55,17 @@ func updateDamageIndicators(dt float64) {
 	write := 0
 	for _, di := range damageIndicators {
 		di.lifetime += dt
+		// Apply movement (upwards = decreasing world y when drawing subtracting camera)
+		di.pos.float_x += di.vx * float32(dt)
 		di.pos.float_y -= di.vy * float32(dt)
+		// Light damping so they slow horizontally and vertically over time
+		di.vx *= 0.98
+		di.vy *= 0.98
+		// Add a gentle upward drift reduction (simulate easing out) by reducing vy further near end
+		progress := di.lifetime / di.maxLifetime
+		if progress > 0.6 {
+			di.vy *= 0.96
+		}
 		if di.lifetime < di.maxLifetime {
 			damageIndicators[write] = di
 			write++

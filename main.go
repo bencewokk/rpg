@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"time"
 
@@ -22,6 +23,7 @@ var (
 )
 
 func gameinit() {
+	rand.Seed(time.Now().UnixNano())
 
 	readMapData()
 	parseTextureAndSprites()
