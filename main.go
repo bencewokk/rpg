@@ -3,8 +3,10 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"image/color"
 	"io"
 	"log"
+	"math"
 	"math/rand"
 	"os"
 	"time"
@@ -14,8 +16,8 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 // Screen sizes
@@ -33,6 +35,7 @@ var (
 	audioCtx           *audio.Context
 	menuMusicPlayer    *audio.Player
 	prevMenuMusicState string
+	baseMusicVolume    = 0.6
 )
 
 func gameinit() {
@@ -158,7 +161,8 @@ var game Game
 
 type Game struct {
 	// 0 menu / 1 menu and options / 3 in game
-	stateid int
+	stateid   int
+	prevState int
 
 	// maps are stored in arrays (see in type map)
 	//
@@ -193,6 +197,9 @@ func (g *Game) Update() error {
 	optionsbtn.UpdateButton()
 	options_exitbtn.UpdateButton()
 	exitbtn.UpdateButton()
+	resumeBtn.UpdateButton()
+	pauseMenuBtn.UpdateButton()
+	pauseExitBtn.UpdateButton()
 
 	if optionsbtn.pressed {
 		game.stateid = 1
@@ -200,20 +207,43 @@ func (g *Game) Update() error {
 	if options_exitbtn.pressed {
 		game.stateid = 0
 	}
-	if playbtn.pressed { game.stateid = 3 }
+	if playbtn.pressed {
+		game.stateid = 3
+	}
 	if exitbtn.pressed {
 		fmt.Println("exited with code 0")
 		os.Exit(0)
 	}
+	// Pause overlay buttons (state 2)
+	if resumeBtn.pressed && game.stateid == 2 {
+		game.stateid = 3
+	}
+	if pauseMenuBtn.pressed && game.stateid == 2 {
+		game.stateid = 0
+	}
+	if pauseExitBtn.pressed && game.stateid == 2 {
+		fmt.Println("exited with code 0")
+		os.Exit(0)
+	}
 
-	// ESC: from game -> menu; from menu/options -> exit
+	// ESC behavior with pause state
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		switch game.stateid {
-		case 3:
-			game.stateid = 0
-		case 0, 1:
+		case 3: // in game -> pause
+			game.stateid = 2
+		case 2: // pause -> back to game
+			game.stateid = 3
+		case 0, 1: // menus -> exit
 			fmt.Println("exited with code 0")
 			os.Exit(0)
+		}
+	}
+	// Also allow 'P' to toggle pause in-game
+	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+		if game.stateid == 3 {
+			game.stateid = 2
+		} else if game.stateid == 2 {
+			game.stateid = 3
 		}
 	}
 
@@ -222,37 +252,31 @@ func (g *Game) Update() error {
 	optionsbtn.pressed = false
 	options_exitbtn.pressed = false
 	exitbtn.pressed = false
+	resumeBtn.pressed = false
+	pauseMenuBtn.pressed = false
+	pauseExitBtn.pressed = false
 
 	// (Animation cycle handled per AnimationPlayer now)
 
 	// Damage indicators
 	updateDamageIndicators(game.deltatime)
 
-	// NPC interaction handling (only ingame)
+	// Menu particle/visual effects
+	if game.stateid == 0 || game.stateid == 1 {
+		updateMenuEffects(game.deltatime)
+	}
+
+	// NPC interaction handling (only ingame, not paused)
 	if game.stateid == 3 {
 		updateNPCInteractions()
 		updateNPCAnimations(game.deltatime)
 	}
 
-	// Menu music state management
-	if menuMusicPlayer != nil {
-		desiredPlaying := (game.stateid == 0 || game.stateid == 1)
-		currentlyPlaying := menuMusicPlayer.IsPlaying()
-		if desiredPlaying && !currentlyPlaying {
-			menuMusicPlayer.Play()
-		} else if !desiredPlaying && currentlyPlaying {
-			menuMusicPlayer.Pause()
-		}
-		// Debug state change log
-		stateNow := "paused"
-		if menuMusicPlayer.IsPlaying() {
-			stateNow = "playing"
-		}
-		if stateNow != prevMenuMusicState {
-			log.Printf("[AUDIO] menu music state -> %s (stateid=%d)\n", stateNow, game.stateid)
-			prevMenuMusicState = stateNow
-		}
-	}
+	// Music volume management (keeps music always playing; lowers on pause)
+	updateMusicVolume(game.stateid, game.deltatime)
+	game.prevState = game.stateid
+
+	// Always keep music playing (started in init). Volume handled above.
 
 	return nil
 }
@@ -266,6 +290,11 @@ var (
 	// Case 1
 	options_exitbtn = createButton("Back to menu", 150, 50, uitransparent, uilightgray, uigray, onearg_createPos(25))
 	testslider      = createSlider("testslider", 500, 20, 5, 10, uigray, uilightgray, uigray, createPos(230, 80))
+
+	// Pause (state 2)
+	resumeBtn    = createButton("Resume", 150, 45, uitransparent, uilightgray, uigray, createPos(50, 60))
+	pauseMenuBtn = createButton("Menu", 150, 45, uitransparent, uilightgray, uigray, createPos(50, 115))
+	pauseExitBtn = createButton("Exit", 150, 45, uitransparent, uilightgray, uigray, createPos(50, 170))
 )
 
 var screenGlobal *ebiten.Image
@@ -283,18 +312,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	switch game.stateid {
 	case 0:
-
-		playbtn.DrawButton(screen)
-
-		optionsbtn.DrawButton(screen)
-		exitbtn.DrawButton(screen)
+		drawFancyMenu(screen, 0)
 
 	case 1:
-
-		options_exitbtn.DrawButton(screen)
-
-		vector.DrawFilledRect(screen, 200, 25, screenWidth-250, screenHeight-50, uidarkgray, false)
-		testslider.DrawSlider(screen)
+		drawFancyMenu(screen, 1)
 
 	case 3:
 		sortDrawables()
@@ -329,6 +350,50 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		// Draw conversation if active
 		drawConversationUI(screen)
 
+	case 2: // paused overlay: draw game scene behind then overlay
+		// First draw game world (reuse logic from case 3 without changing state)
+		sortDrawables()
+		for i := 0; i < game.currentmap.height; i++ {
+			for j := 0; j < game.currentmap.width; j++ {
+				if game.currentmap.texture[i][j] != nil {
+					drawTile(screen, game.currentmap.texture[i][j], i, j)
+				}
+			}
+		}
+		for i := 0; i < len(drawables); i++ {
+			drawables[i].giveId(i)
+			drawables[i].draw(screen)
+		}
+		p := 0
+		game.currentmap.players[p].drawUi()
+		// damage + conversations on top
+		drawDamageIndicators()
+		drawConversationUI(screen)
+		// Washed overlay (desaturated feel via tinted semi-transparent layer)
+		vector.DrawFilledRect(screen, 0, 0, screenWidth, screenHeight, color.RGBA{40, 40, 40, 170}, false)
+		// Pause panel
+		panelW := float32(260)
+		panelH := float32(200)
+		panelX := (screenWidth - panelW) / 2
+		panelY := (screenHeight - panelH) / 2
+		vector.DrawFilledRect(screen, panelX+4, panelY+4, panelW, panelH, color.RGBA{0, 0, 0, 120}, false) // shadow
+		vector.DrawFilledRect(screen, panelX, panelY, panelW, panelH, color.RGBA{70, 80, 75, 230}, false)
+		// Title
+		fmtStr := "PAUSED"
+		fbx := int(panelX + (panelW-float32(len(fmtStr))*7)/2)
+		fby := int(panelY + 10)
+		ebitenutil.DebugPrintAt(screen, fmtStr, fbx, fby)
+		// Reposition pause buttons relative to panel for neat layout
+		resumeBtn.pos.float_x = panelX + panelW/2 - resumeBtn.width/2
+		resumeBtn.pos.float_y = panelY + 50
+		pauseMenuBtn.pos.float_x = panelX + panelW/2 - pauseMenuBtn.width/2
+		pauseMenuBtn.pos.float_y = panelY + 100
+		pauseExitBtn.pos.float_x = panelX + panelW/2 - pauseExitBtn.width/2
+		pauseExitBtn.pos.float_y = panelY + 150
+		resumeBtn.DrawButton(screen)
+		pauseMenuBtn.DrawButton(screen)
+		pauseExitBtn.DrawButton(screen)
+
 	}
 
 	fps := ebiten.CurrentFPS()
@@ -339,6 +404,76 @@ func (g *Game) Draw(screen *ebiten.Image) {
 // Layout method of the Game
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return outsideWidth, outsideHeight
+}
+
+// managePauseAudio handles quick fade out/in when pausing/unpausing.
+func managePauseAudio(prev, cur int, dt float64) {
+	if menuMusicPlayer == nil {
+		return
+	}
+	// Only affect if we were/are in menu music playing states (0,1) OR paused state
+	if prev == cur {
+		return
+	}
+	// If entering pause from menu (0 or 1) we fast fade
+	if (cur == 2) && (prev == 0 || prev == 1) {
+		// reduce volume rapidly
+		v := menuMusicPlayer.Volume()
+		v -= float64(dt) * 2.5
+		if v < 0 {
+			v = 0
+		}
+		menuMusicPlayer.SetVolume(v)
+		if v == 0 {
+			menuMusicPlayer.Pause()
+		}
+	}
+	// If leaving pause back to menu, restore volume quickly and play
+	if (prev == 2) && (cur == 0 || cur == 1) {
+		if !menuMusicPlayer.IsPlaying() {
+			menuMusicPlayer.Play()
+		}
+		v := menuMusicPlayer.Volume()
+		v += float64(dt) * 3
+		if v > 0.6 {
+			v = 0.6
+		}
+		menuMusicPlayer.SetVolume(v)
+	}
+}
+
+// updateMusicVolume keeps music playing; when paused (state 2) it squashes volume lower and restores otherwise.
+func updateMusicVolume(state int, dt float64) {
+	if menuMusicPlayer == nil {
+		return
+	}
+	// ensure playing
+	if !menuMusicPlayer.IsPlaying() {
+		menuMusicPlayer.Play()
+	}
+	target := baseMusicVolume
+	if state == 2 { // paused -> squash
+		target = baseMusicVolume * 0.25
+	}
+	cur := menuMusicPlayer.Volume()
+	// smooth approach
+	speed := 2.5 // volume units per second
+	if math.Abs(cur-target) < 0.01 {
+		menuMusicPlayer.SetVolume(target)
+		return
+	}
+	if cur < target {
+		cur += speed * dt
+	} else {
+		cur -= speed * dt
+	}
+	if cur < 0 {
+		cur = 0
+	}
+	if cur > baseMusicVolume {
+		cur = baseMusicVolume
+	}
+	menuMusicPlayer.SetVolume(cur)
 }
 
 func main() {

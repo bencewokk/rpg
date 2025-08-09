@@ -227,21 +227,61 @@ func (b *button) DrawButton(screen *ebiten.Image) {
 		b.hovered = false
 	}
 
-	// Choose color based on button state
-	var drawColor color.Color
+	base := b.inactiveColor
+	if b.hovered {
+		base = b.hoveredColor
+	}
 	if b.pressed {
-		drawColor = b.pressedColor
-	} else if b.hovered {
-		drawColor = b.hoveredColor
-	} else {
-		drawColor = b.inactiveColor
+		base = b.pressedColor
 	}
 
-	// Draw the button rectangle
-	vector.DrawFilledRect(screen, b.pos.float_x, b.pos.float_y, float32(b.width), float32(b.height), drawColor, false)
+	// utility to lighten/darken
+	adjust := func(c color.RGBA, d int) color.RGBA {
+		clamp := func(v int) uint8 {
+			if v < 0 {
+				return 0
+			}
+			if v > 255 {
+				return 255
+			}
+			return uint8(v)
+		}
+		return color.RGBA{clamp(int(c.R) + d), clamp(int(c.G) + d), clamp(int(c.B) + d), c.A}
+	}
 
-	// Draw the button title as text
-	ebitenutil.DebugPrintAt(screen, b.title, int(b.pos.float_x+10), int(b.pos.float_y+10))
+	shadowCol := color.RGBA{0, 0, 0, 90}
+	borderCol := adjust(base, 30)
+	fillTop := adjust(base, 15)
+	fillBottom := adjust(base, -10)
+
+	x := b.pos.float_x
+	y := b.pos.float_y
+	w := b.width
+	h := b.height
+
+	// Shadow
+	vector.DrawFilledRect(screen, x+2, y+2, w, h, shadowCol, false)
+	// Border
+	vector.DrawFilledRect(screen, x, y, w, h, borderCol, false)
+	// Inner fill (slightly inset to show border)
+	vector.DrawFilledRect(screen, x+2, y+2, w-4, (h-4)/2, fillTop, false)
+	vector.DrawFilledRect(screen, x+2, y+2+(h-4)/2, w-4, (h-4)/2, fillBottom, false)
+
+	// Highlight outline on hover
+	if b.hovered && !b.pressed {
+		outline := color.RGBA{255, 255, 255, 50}
+		vector.DrawFilledRect(screen, x+2, y+2, w-4, 2, outline, false) // top glow
+	}
+
+	// Text centering (approximate width: 7px per char)
+	textW := len(b.title) * 7
+	textX := int(x + (w-float32(textW))/2)
+	textY := int(y + (h-10)/2) // vertical alignment tweak
+	if b.pressed {             // nudge when pressed
+		textX += 1
+		textY += 1
+	}
+	ebitenutil.DebugPrintAt(screen, b.title, textX, textY)
 }
 
 // UpdateButton processes hover & click state. Call this in Game.Update before using b.pressed.
