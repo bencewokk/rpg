@@ -12,6 +12,12 @@ const (
 	DASHSPEED   = 800 // was 700
 	BOOSTSPEED  = 340 // was 300
 	ATTACKSPEED = 160 // character movement speed while attacking
+
+	// Damage randomness
+	MIN_DAMAGE      = 4.0
+	MAX_DAMAGE      = 10.0
+	CRIT_CHANCE     = 0.15
+	CRIT_MULTIPLIER = 2.0
 )
 
 type character struct {
@@ -169,12 +175,19 @@ func (c *character) attack() {
 
 	for i := 0; i < len(es); i++ {
 		e := es[i]
-		e.hp -= float32(5 / len(es) * 4)
+		// Roll base damage in range
+		varDmg := MIN_DAMAGE + rand.Float32()*(MAX_DAMAGE-MIN_DAMAGE)
+		crit := false
+		// Critical hit roll
+		if rand.Float32() < CRIT_CHANCE {
+			varDmg *= CRIT_MULTIPLIER
+			crit = true
+		}
+		e.hp -= float32(varDmg)
 		e.hit = true
 		e.sinceHit = 0.2
-		// Velocity-based knockback (stronger if closer to center of attack)
 		applyKnockback(e, c, KNOCKBACK_BASE_STRENGTH)
-		AddDamageIndicator(e.pos, 5)
+		AddDamageIndicator(e.pos, float32(varDmg), crit)
 	}
 
 }
