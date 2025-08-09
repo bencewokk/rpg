@@ -74,3 +74,6 @@ The [sprite pack](https://ipyxeloutlookcomar.itch.io/forgottenland) I am using c
 #### 2024.11.27 - version 0.1.5
 - Added pathfinding for enemies
 - Started working on basic gameplay and interactions between players and enemies
+
+#### 2024.11.27 - version 0.1.6
+- Implemented the mapeditor in this repo instead /bencewokk/mapmaker
