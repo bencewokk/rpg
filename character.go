@@ -39,6 +39,8 @@ type character struct {
 	untilEndOfBoost float64
 
 	hp float32
+	// UI smoothed values
+	uiHp float32
 
 	attacking                bool
 	sinceAttack              float64
@@ -58,6 +60,7 @@ func createCharacter() {
 	var c character
 
 	c.hp = 100
+	c.uiHp = c.hp
 	c.pos = createPos(screenWidth/2, screenHeight/2)
 	c.speed = CHARSPEED
 
