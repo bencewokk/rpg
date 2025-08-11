@@ -14,6 +14,7 @@ const (
 	ToolBucket
 	ToolNode
 	ToolPath
+	ToolNPC
 )
 
 // Action represents a single undoable action
@@ -43,6 +44,9 @@ type ToolSystem struct {
 	history      []Action
 	historyIndex int
 	maxHistory   int
+
+	// NPC editing
+	selectedNPC int
 }
 
 func NewToolSystem() ToolSystem {
@@ -55,6 +59,7 @@ func NewToolSystem() ToolSystem {
 		history:         make([]Action, 0),
 		historyIndex:    -1,
 		maxHistory:      100, // Keep last 100 actions
+		selectedNPC:     -1,
 	}
 }
 
@@ -129,6 +134,8 @@ func (t *ToolSystem) GetToolName() string {
 		return "Node"
 	case ToolPath:
 		return "Path"
+	case ToolNPC:
+		return "NPC"
 	default:
 		return "Unknown"
 	}
@@ -329,6 +336,56 @@ func (t *ToolSystem) HandlePathTool(mapData *mapio.MapData, worldX, worldY float
 		t.pathStartNodeID = -1
 	}
 }
+
+// HandleNPCTool handles placement and removal of NPC markers.
+func (t *ToolSystem) HandleNPCTool(mapData *mapio.MapData, worldX, worldY float64, leftClick, rightClick bool) {
+	if leftClick {
+		// If clicking existing NPC select it, else create new
+		hit := -1
+		for i, n := range mapData.NPCs {
+			dx := float64(n.Pos.X) - worldX
+			dy := float64(n.Pos.Y) - worldY
+			if math.Sqrt(dx*dx+dy*dy) < 18 {
+				hit = i
+				break
+			}
+		}
+		if hit >= 0 {
+			t.selectedNPC = hit
+		} else {
+			mapData.NPCs = append(mapData.NPCs, mapio.NPC{
+				Name:      "NPC",
+				Pos:       mapio.Pos{X: float32(worldX), Y: float32(worldY)},
+				Dialogues: []string{"Line 1", "Line 2"},
+			})
+			t.selectedNPC = len(mapData.NPCs) - 1
+		}
+	}
+	if rightClick {
+		// remove selected or nearest
+		if t.selectedNPC >= 0 && t.selectedNPC < len(mapData.NPCs) {
+			mapData.NPCs = append(mapData.NPCs[:t.selectedNPC], mapData.NPCs[t.selectedNPC+1:]...)
+			t.selectedNPC = -1
+			return
+		}
+		idx := -1
+		bestDist := float64(999999)
+		for i, n := range mapData.NPCs {
+			dx := float64(n.Pos.X) - worldX
+			dy := float64(n.Pos.Y) - worldY
+			d := math.Sqrt(dx*dx + dy*dy)
+			if d < 20 && d < bestDist {
+				idx = i
+				bestDist = d
+			}
+		}
+		if idx >= 0 {
+			mapData.NPCs = append(mapData.NPCs[:idx], mapData.NPCs[idx+1:]...)
+		}
+	}
+}
+
+func (t *ToolSystem) GetSelectedNPC() int { return t.selectedNPC }
 
 // findNodeAtPosition finds a node within tolerance distance of the given position
 func (t *ToolSystem) findNodeAtPosition(mapData *mapio.MapData, worldX, worldY, tolerance float64) int {

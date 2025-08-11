@@ -22,6 +22,7 @@ func readMapData() {
 	isReadingSprites := false
 	isReadingNodes := false
 	isReadingPaths := false
+	isReadingNPCs := false
 
 	if isReadingPaths {
 
@@ -40,16 +41,25 @@ func readMapData() {
 			isReadingSprites = true
 			isReadingNodes = false
 			isReadingPaths = false
+			isReadingNPCs = false
 			continue
 		case "---NODES---":
 			isReadingSprites = false
 			isReadingNodes = true
 			isReadingPaths = false
+			isReadingNPCs = false
 			continue
 		case "---PATHS---":
 			isReadingSprites = false
 			isReadingNodes = false
 			isReadingPaths = true
+			isReadingNPCs = false
+			continue
+		case "---NPCS---":
+			isReadingSprites = false
+			isReadingNodes = false
+			isReadingPaths = false
+			isReadingNPCs = true
 			continue
 		}
 
@@ -151,6 +161,28 @@ func readMapData() {
 			path := createPath(findNodeByID(nodeAID), findNodeByID(nodeBID), float32(cost))
 			game.currentmap.paths = append(game.currentmap.paths, path)
 
+		} else if isReadingNPCs {
+			// NPC line: NPC, Name, X, Y, VoiceKey, dialogue1|dialogue2|...
+			values := strings.Split(line, ",")
+			if len(values) < 7 {
+				continue
+			}
+			if strings.TrimSpace(values[0]) != "NPC" {
+				continue
+			}
+			floatX, errX := strconv.ParseFloat(strings.TrimSpace(values[2]), 32)
+			floatY, errY := strconv.ParseFloat(strings.TrimSpace(values[3]), 32)
+			if errX != nil || errY != nil {
+				continue
+			}
+			spritePath := strings.TrimSpace(values[5])
+			dialogueField := strings.Join(values[6:], ",")
+			dialogueField = strings.TrimSpace(dialogueField)
+			var dialogues []string
+			if dialogueField != "" {
+				dialogues = strings.Split(dialogueField, "|")
+			}
+			createNPCWithSprite(createPos(float32(floatX), float32(floatY)), dialogues, spritePath)
 		} else {
 			// Process map data
 			values := strings.Split(line, ",")

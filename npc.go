@@ -29,42 +29,102 @@ type npc struct {
 }
 
 var (
-	activeNPC *npc
-	npcSprite *ebiten.Image // lazy loaded
+	activeNPC      *npc
+	npcSprite      *ebiten.Image // legacy default
+	npcSpriteCache = map[string]*ebiten.Image{}
 )
 
 // createNPC adds an NPC to the current map with the provided dialogue lines.
-func createNPC(p pos, lines []string) {
-	if npcSprite == nil {
-		// Reuse an existing character-like sprite (spritesheet)
-		npcSprite = loadPNG("import/Characters/hamster.png")
+func createNPC(p pos, lines []string) { createNPCWithSprite(p, lines, "import/Characters/hamster.png") }
+
+// createNPCWithSprite allows specifying a sprite path; caches images; falls back on default if load fails.
+func createNPCWithSprite(p pos, lines []string, spritePath string) {
+	if spritePath == "" || spritePath == "-" {
+		spritePath = "import/Characters/hamster.png"
 	}
-	sheetW, sheetH := npcSprite.Size()
+	img, ok := npcSpriteCache[spritePath]
+	if !ok {
+		defer func() { // recover from potential load issues silently
+			if r := recover(); r != nil {
+				img = npcSprite
+			}
+		}()
+		img = loadPNG(spritePath)
+		if img != nil {
+			npcSpriteCache[spritePath] = img
+		}
+	}
+	if img == nil {
+		if npcSprite == nil {
+			npcSprite = loadPNG("import/Characters/hamster.png")
+		}
+		img = npcSprite
+	}
+	sheetW, sheetH := img.Size()
 	var frames []*ebiten.Image
-	if sheetH > 0 && sheetW > sheetH {
+	// Detect layout types:
+	// 1. Horizontal strip (sheetW > sheetH)
+	// 2. Vertical strip (sheetH > sheetW)
+	// 3. Grid (sheetW == sheetH containing NxN frames)
+	if sheetH > 0 && sheetW > sheetH { // horizontal strip
 		frameSize := sheetH
 		frameCount := sheetW / frameSize
 		for i := 0; i < frameCount; i++ {
 			r := image.Rect(i*frameSize, 0, (i+1)*frameSize, frameSize)
-			sub := npcSprite.SubImage(r)
-			if si, ok := sub.(*ebiten.Image); ok {
-				frames = append(frames, si)
+			if sub, ok := img.SubImage(r).(*ebiten.Image); ok {
+				frames = append(frames, sub)
+			}
+		}
+	} else if sheetW > 0 && sheetH > sheetW { // vertical strip
+		frameSize := sheetW
+		frameCount := sheetH / frameSize
+		for i := 0; i < frameCount; i++ {
+			r := image.Rect(0, i*frameSize, frameSize, (i+1)*frameSize)
+			if sub, ok := img.SubImage(r).(*ebiten.Image); ok {
+				frames = append(frames, sub)
+			}
+		}
+	} else if sheetW == sheetH && sheetW > 0 { // potential grid (e.g., 2x2, 3x3, 4x4)
+		// Find a reasonable grid factor (prefer 4, then 3, then 2, else no grid)
+		candidates := []int{8, 6, 5, 4, 3, 2}
+		var grid int
+		for _, c := range candidates {
+			if sheetW%c == 0 {
+				grid = c
+				break
+			}
+		}
+		if grid > 1 { // slice grid
+			cell := sheetW / grid
+			// Avoid absurdly tiny cells (<8px) – treat as single image instead.
+			if cell >= 8 {
+				for y := 0; y < grid; y++ {
+					for x := 0; x < grid; x++ {
+						r := image.Rect(x*cell, y*cell, (x+1)*cell, (y+1)*cell)
+						if sub, ok := img.SubImage(r).(*ebiten.Image); ok {
+							frames = append(frames, sub)
+						}
+					}
+				}
 			}
 		}
 	}
-	baseImg := npcSprite
+	baseImg := img
 	if len(frames) > 0 {
 		baseImg = frames[0]
+	} else {
+		// Fallback: crop leftmost square so we don't render the entire sheet of frames.
+		minDim := sheetW
+		if sheetH < minDim {
+			minDim = sheetH
+		}
+		if minDim > 0 {
+			if sub, ok := img.SubImage(image.Rect(0, 0, minDim, minDim)).(*ebiten.Image); ok {
+				baseImg = sub
+			}
+		}
 	}
-	n := &npc{
-		pos:           p,
-		texture:       baseImg,
-		dialogue:      lines,
-		talkRadius:    110,
-		name:          "NPC",
-		frames:        frames,
-		frameDuration: 0.15,
-	}
+	n := &npc{pos: p, texture: baseImg, dialogue: lines, talkRadius: 110, name: "NPC", frames: frames, frameDuration: 0.15}
 	game.currentmap.npcs = append(game.currentmap.npcs, n)
 	drawables = append(drawables, n)
 }

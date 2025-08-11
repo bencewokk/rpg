@@ -40,6 +40,16 @@ type MapData struct {
 	Nodes   []Node
 	Paths   []Path
 	Sprites []Sprite
+	NPCs    []NPC
+}
+
+// NPC represents a placed NPC with dialogue. VoiceKey reserved for future voice integration.
+type NPC struct {
+	Name       string
+	Pos        Pos
+	Dialogues  []string
+	VoiceKey   string // placeholder for future audio key/asset id
+	SpritePath string
 }
 
 // NewMapData creates a new empty map with specified dimensions
@@ -56,6 +66,7 @@ func NewMapData(width, height int) *MapData {
 		Nodes:   []Node{},
 		Paths:   []Path{},
 		Sprites: []Sprite{},
+		NPCs:    []NPC{},
 	}
 }
 
@@ -71,12 +82,14 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 		Nodes:   []Node{},
 		Paths:   []Path{},
 		Sprites: []Sprite{},
+		NPCs:    []NPC{},
 	}
 
 	scanner := bufio.NewScanner(file)
 	isReadingSprites := false
 	isReadingNodes := false
 	isReadingPaths := false
+	isReadingNPCs := false
 
 	y := 0
 	var maxWidth int
@@ -93,16 +106,25 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 			isReadingSprites = true
 			isReadingNodes = false
 			isReadingPaths = false
+			isReadingNPCs = false
 			continue
 		case "---NODES---":
 			isReadingSprites = false
 			isReadingNodes = true
 			isReadingPaths = false
+			isReadingNPCs = false
 			continue
 		case "---PATHS---":
 			isReadingSprites = false
 			isReadingNodes = false
 			isReadingPaths = true
+			isReadingNPCs = false
+			continue
+		case "---NPCS---":
+			isReadingSprites = false
+			isReadingNodes = false
+			isReadingPaths = false
+			isReadingNPCs = true
 			continue
 		}
 
@@ -114,7 +136,6 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 				continue
 			}
 			mapData.Sprites = append(mapData.Sprites, *sprite)
-
 		} else if isReadingNodes {
 			node, err := parseNodeLine(line)
 			if err != nil {
@@ -122,7 +143,6 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 				continue
 			}
 			mapData.Nodes = append(mapData.Nodes, *node)
-
 		} else if isReadingPaths {
 			path, err := parsePathLine(line)
 			if err != nil {
@@ -130,6 +150,13 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 				continue
 			}
 			mapData.Paths = append(mapData.Paths, *path)
+		} else if isReadingNPCs {
+			npc, err := parseNPCLine(line)
+			if err != nil {
+				fmt.Printf("Warning: Invalid NPC data: %s\n", line)
+				continue
+			}
+			mapData.NPCs = append(mapData.NPCs, *npc)
 
 		} else {
 			// Process map tile data
@@ -140,7 +167,7 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 
 			values := strings.Split(line, ",")
 			row := make([]int, len(values))
-			
+
 			for x, value := range values {
 				value = strings.TrimSpace(value)
 				if value == "" {
@@ -153,7 +180,7 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 				}
 				row[x] = intValue
 			}
-			
+
 			mapData.Tiles = append(mapData.Tiles, row)
 			if len(row) > maxWidth {
 				maxWidth = len(row)
@@ -169,8 +196,8 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 	mapData.Width = maxWidth
 	mapData.Height = y
 
-	fmt.Printf("Loaded map: %dx%d with %d nodes, %d paths, %d sprites\n", 
-		mapData.Width, mapData.Height, len(mapData.Nodes), len(mapData.Paths), len(mapData.Sprites))
+	fmt.Printf("Loaded map: %dx%d with %d nodes, %d paths, %d sprites, %d NPCs\n",
+		mapData.Width, mapData.Height, len(mapData.Nodes), len(mapData.Paths), len(mapData.Sprites), len(mapData.NPCs))
 
 	return mapData, nil
 }
@@ -204,6 +231,23 @@ func SaveMapToFile(mapData *MapData, filename string) error {
 		writer.WriteString("---SPRITES---\n")
 		for _, sprite := range mapData.Sprites {
 			writer.WriteString(fmt.Sprintf("%d, %.1f, %.1f\n", sprite.Type, sprite.Pos.X, sprite.Pos.Y))
+		}
+	}
+
+	// Write NPCs section (format: NPC, Name, X, Y, VoiceKeyPlaceholder, dialogue1|dialogue2|...)
+	if len(mapData.NPCs) > 0 {
+		writer.WriteString("---NPCS---\n")
+		for _, n := range mapData.NPCs {
+			voice := n.VoiceKey
+			if voice == "" {
+				voice = "-"
+			}
+			joined := strings.Join(n.Dialogues, "|")
+			path := n.SpritePath
+			if path == "" {
+				path = "-"
+			}
+			writer.WriteString(fmt.Sprintf("NPC, %s, %.1f, %.1f, %s, %s, %s\n", n.Name, n.Pos.X, n.Pos.Y, voice, path, joined))
 		}
 	}
 
@@ -316,6 +360,46 @@ func parsePathLine(line string) (*Path, error) {
 		NodeBID: nodeBID,
 		Cost:    float32(cost),
 	}, nil
+}
+
+// parseNPCLine parses an NPC line of format:
+// NPC, Name, X, Y, VoiceKey, dialogue1|dialogue2|...
+// VoiceKey may be '-' placeholder.
+func parseNPCLine(line string) (*NPC, error) {
+	values := strings.Split(line, ",")
+	if len(values) < 7 {
+		return nil, fmt.Errorf("invalid NPC format")
+	}
+	if strings.TrimSpace(values[0]) != "NPC" {
+		return nil, fmt.Errorf("not an NPC line")
+	}
+	name := strings.TrimSpace(values[1])
+	x, err := strconv.ParseFloat(strings.TrimSpace(values[2]), 32)
+	if err != nil {
+		return nil, fmt.Errorf("invalid NPC X")
+	}
+	y, err := strconv.ParseFloat(strings.TrimSpace(values[3]), 32)
+	if err != nil {
+		return nil, fmt.Errorf("invalid NPC Y")
+	}
+	voiceKey := strings.TrimSpace(values[4])
+	if voiceKey == "-" {
+		voiceKey = ""
+	}
+	spritePath := strings.TrimSpace(values[5])
+	if spritePath == "-" {
+		spritePath = ""
+	}
+	dialogueField := strings.Join(values[6:], ",")
+	dialogueField = strings.TrimSpace(dialogueField)
+	dialogues := []string{}
+	if dialogueField != "" {
+		dialogues = strings.Split(dialogueField, "|")
+	}
+	for i, d := range dialogues {
+		dialogues[i] = strings.TrimSpace(d)
+	}
+	return &NPC{Name: name, Pos: Pos{X: float32(x), Y: float32(y)}, Dialogues: dialogues, VoiceKey: voiceKey, SpritePath: spritePath}, nil
 }
 
 // GetTile safely gets a tile value at the specified coordinates

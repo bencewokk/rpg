@@ -5,6 +5,8 @@ import (
 	"image/color"
 	"log"
 	"rpg/mapio"
+	"strings"
+	"unicode/utf8"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -26,11 +28,119 @@ type MapEditor struct {
 	ui      UI
 	tools   ToolSystem
 	assets  AssetManager
+	// dialogue editing state
+	editingDialogue bool
+	editDialogueIdx int
+	editBuffer      string
 }
 
 func (e *MapEditor) Update() error {
 	e.camera.Update()
 	e.ui.Update()
+
+	// NPC editing & inline dialogue editing
+	if e.ui.selectedTool == ToolNPC {
+		idx := e.tools.GetSelectedNPC()
+		if idx >= 0 && idx < len(e.mapData.NPCs) {
+			n := &e.mapData.NPCs[idx]
+			// mouse click to select line
+			mouseX, mouseY := ebiten.CursorPosition()
+			if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+				panelX, panelY := 120, 10
+				lineStartY := panelY + 55
+				lineHeight := 14
+				maxLinesDisplay := 8
+				if mouseX >= panelX && mouseX <= panelX+260 && mouseY >= lineStartY && mouseY <= lineStartY+maxLinesDisplay*lineHeight {
+					clickedIdx := (mouseY - lineStartY) / lineHeight
+					if clickedIdx >= 0 && clickedIdx < len(n.Dialogues) && clickedIdx < maxLinesDisplay {
+						e.editingDialogue = true
+						e.editDialogueIdx = clickedIdx
+						e.editBuffer = n.Dialogues[clickedIdx]
+					}
+				}
+			}
+			// add new line (Ctrl + '+')
+			if ebiten.IsKeyPressed(ebiten.KeyControl) && (inpututil.IsKeyJustPressed(ebiten.KeyEqual) || inpututil.IsKeyJustPressed(ebiten.KeyKPAdd)) {
+				n.Dialogues = append(n.Dialogues, "New line")
+				if !e.editingDialogue {
+					e.editDialogueIdx = len(n.Dialogues) - 1
+					e.editBuffer = n.Dialogues[e.editDialogueIdx]
+					e.editingDialogue = true
+				}
+			}
+			// remove last line (Ctrl + '-')
+			if ebiten.IsKeyPressed(ebiten.KeyControl) && (inpututil.IsKeyJustPressed(ebiten.KeyMinus) || inpututil.IsKeyJustPressed(ebiten.KeyKPSubtract)) {
+				if len(n.Dialogues) > 0 {
+					n.Dialogues = n.Dialogues[:len(n.Dialogues)-1]
+					if e.editDialogueIdx >= len(n.Dialogues) {
+						e.editDialogueIdx = len(n.Dialogues) - 1
+						if e.editDialogueIdx < 0 {
+							e.editingDialogue = false
+						}
+					}
+				}
+			}
+			// cycle sprite path placeholders (Ctrl + '[' or ']')
+			if ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyLeftBracket) {
+				n.SpritePath = "import/Characters/hamster.png"
+			}
+			if ebiten.IsKeyPressed(ebiten.KeyControl) && inpututil.IsKeyJustPressed(ebiten.KeyRightBracket) {
+				n.SpritePath = "import/Characters/Orc.png"
+			}
+
+			// cycle through scanned sprite list with Ctrl+Up / Ctrl+Down
+			if ebiten.IsKeyPressed(ebiten.KeyControl) && (inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) || inpututil.IsKeyJustPressed(ebiten.KeyArrowDown)) {
+				paths := e.assets.GetNPCSpritePaths()
+				if len(paths) > 0 {
+					// find current index
+					idxCur := -1
+					for i, pth := range paths {
+						if pth == n.SpritePath {
+							idxCur = i
+							break
+						}
+					}
+					if idxCur == -1 {
+						idxCur = 0
+					}
+					if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) {
+						idxCur = (idxCur + 1) % len(paths)
+					}
+					if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) {
+						idxCur = (idxCur - 1 + len(paths)) % len(paths)
+					}
+					n.SpritePath = paths[idxCur]
+				}
+			}
+
+			// handle text editing
+			if e.editingDialogue && e.editDialogueIdx >= 0 && e.editDialogueIdx < len(n.Dialogues) {
+				// commit/cancel
+				if inpututil.IsKeyJustPressed(ebiten.KeyEnter) || inpututil.IsKeyJustPressed(ebiten.KeyKPEnter) {
+					n.Dialogues[e.editDialogueIdx] = strings.TrimSpace(e.editBuffer)
+					e.editingDialogue = false
+				}
+				if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
+					e.editingDialogue = false
+				}
+				// backspace
+				if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) {
+					if len(e.editBuffer) > 0 {
+						_, size := utf8.DecodeLastRuneInString(e.editBuffer)
+						if size > 0 {
+							e.editBuffer = e.editBuffer[:len(e.editBuffer)-size]
+						}
+					}
+				}
+				// append typed chars
+				for _, r := range ebiten.InputChars() {
+					if r >= 32 && r != 127 {
+						e.editBuffer += string(r)
+					}
+				}
+			}
+		}
+	}
 
 	// Handle file operations
 	if ebiten.IsKeyPressed(ebiten.KeyControl) {
@@ -108,6 +218,30 @@ func (e *MapEditor) updateTools() {
 
 	currentTool := e.ui.GetSelectedTool()
 
+	// If NPC tool and cursor is over the NPC overlay panel, suppress tool interactions
+	if currentTool == ToolNPC {
+		idx := e.tools.GetSelectedNPC()
+		if idx >= 0 && idx < len(e.mapData.NPCs) {
+			// Mirror overlay geometry from Draw()
+			panelX, panelY := 120, 10
+			panelW := 260
+			// Compute dynamic panel height similar to Draw()
+			lines := len(e.mapData.NPCs[idx].Dialogues)
+			maxLinesDisplay := 8
+			if lines > maxLinesDisplay {
+				lines = maxLinesDisplay
+			}
+			panelH := 110 + lines*14
+			if panelH < 140 {
+				panelH = 140
+			}
+			if mouseX >= panelX && mouseX <= panelX+panelW && mouseY >= panelY && mouseY <= panelY+panelH {
+				// Inside overlay: let Update() handle line editing clicks; skip placement/deletion
+				return
+			}
+		}
+	}
+
 	switch currentTool {
 	case ToolPaint, ToolBucket:
 		// Handle painting/bucket with left mouse button held
@@ -123,6 +257,9 @@ func (e *MapEditor) updateTools() {
 	case ToolPath:
 		// Handle path tool
 		e.tools.HandlePathTool(e.mapData, worldX, worldY, leftClick, rightClick)
+	case ToolNPC:
+		// Handle NPC placement/removal
+		e.tools.HandleNPCTool(e.mapData, worldX, worldY, leftClick, rightClick)
 	}
 }
 
@@ -138,6 +275,68 @@ func (e *MapEditor) Draw(screen *ebiten.Image) {
 
 	// Draw UI elements
 	e.ui.Draw(screen)
+
+	// NPC overlay with inline editing
+	if e.ui.selectedTool == ToolNPC {
+		idx := e.tools.GetSelectedNPC()
+		if idx >= 0 && idx < len(e.mapData.NPCs) {
+			n := e.mapData.NPCs[idx]
+			panelX, panelY := 120, 10
+			maxLinesDisplay := 8
+			linesShown := len(n.Dialogues)
+			if linesShown > maxLinesDisplay {
+				linesShown = maxLinesDisplay
+			}
+			panelH := float32(110 + linesShown*14)
+			if panelH < 140 {
+				panelH = 140
+			}
+			vector.DrawFilledRect(screen, float32(panelX), float32(panelY), 260, panelH, color.RGBA{50, 50, 60, 200}, false)
+			vector.StrokeRect(screen, float32(panelX), float32(panelY), 260, panelH, 2, color.RGBA{0, 0, 0, 255}, false)
+			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("NPC %d", idx), panelX+10, panelY+10)
+			ebitenutil.DebugPrintAt(screen, "Name:"+n.Name, panelX+10, panelY+25)
+			ebitenutil.DebugPrintAt(screen, "Sprite:"+n.SpritePath, panelX+10, panelY+40)
+			lineBaseY := panelY + 55
+			for i := 0; i < linesShown; i++ {
+				text := n.Dialogues[i]
+				if e.editingDialogue && e.editDialogueIdx == i {
+					text = e.editBuffer + "|"
+				}
+				// highlight row
+				if e.editDialogueIdx == i && e.editingDialogue {
+					vector.DrawFilledRect(screen, float32(panelX+5), float32(lineBaseY+i*14-2), 250, 14, color.RGBA{90, 90, 110, 220}, false)
+				} else if e.editDialogueIdx == i {
+					vector.DrawFilledRect(screen, float32(panelX+5), float32(lineBaseY+i*14-2), 250, 14, color.RGBA{70, 70, 90, 180}, false)
+				}
+				ebitenutil.DebugPrintAt(screen, fmt.Sprintf("%d: %s", i+1, text), panelX+10, lineBaseY+i*14)
+			}
+			if len(n.Dialogues) > maxLinesDisplay {
+				ebitenutil.DebugPrintAt(screen, "(scroll TBD)", panelX+10, lineBaseY+linesShown*14)
+			}
+			// instructions footer
+			instrY := int(panelY) + int(panelH) - 44
+			paths := e.assets.GetNPCSpritePaths()
+			if len(paths) > 0 {
+				// show index
+				curIdx := -1
+				for i, p := range paths {
+					if p == n.SpritePath {
+						curIdx = i
+						break
+					}
+				}
+				if curIdx >= 0 {
+					ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Sprite %d/%d", curIdx+1, len(paths)), panelX+10, instrY)
+				}
+				instrY += 14
+				ebitenutil.DebugPrintAt(screen, "Ctrl+Up/Down cycle sprites", panelX+10, instrY)
+				instrY += 14
+			}
+			ebitenutil.DebugPrintAt(screen, "+ add  - remove", panelX+10, instrY)
+			instrY += 14
+			ebitenutil.DebugPrintAt(screen, "Click line then type, Enter=save Esc=cancel", panelX+10, instrY)
+		}
+	}
 
 	// Draw debug info
 	fps := ebiten.CurrentFPS()
@@ -188,6 +387,19 @@ func (e *MapEditor) drawMap(screen *ebiten.Image) {
 				screen.DrawImage(texture, op)
 			}
 		}
+	}
+
+	// Draw NPC markers (simple circles with initial letter)
+	for _, n := range e.mapData.NPCs {
+		sx := e.offsetsx(n.Pos.X)
+		sy := e.offsetsy(n.Pos.Y)
+		vector.DrawFilledCircle(screen, sx, sy, 6, color.RGBA{200, 180, 60, 255}, false)
+		vector.StrokeCircle(screen, sx, sy, 6, 2, color.RGBA{0, 0, 0, 255}, false)
+		label := "N"
+		if len(n.Name) > 0 {
+			label = string([]rune(n.Name)[0])
+		}
+		ebitenutil.DebugPrintAt(screen, label, int(sx)-3, int(sy)-20)
 	}
 }
 
