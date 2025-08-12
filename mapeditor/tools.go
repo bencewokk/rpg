@@ -15,6 +15,7 @@ const (
 	ToolNode
 	ToolPath
 	ToolNPC
+	ToolSpawner
 )
 
 // Action represents a single undoable action
@@ -47,6 +48,9 @@ type ToolSystem struct {
 
 	// NPC editing
 	selectedNPC int
+
+	// Spawner editing
+	selectedSpawner int
 }
 
 func NewToolSystem() ToolSystem {
@@ -60,6 +64,7 @@ func NewToolSystem() ToolSystem {
 		historyIndex:    -1,
 		maxHistory:      100, // Keep last 100 actions
 		selectedNPC:     -1,
+		selectedSpawner: -1,
 	}
 }
 
@@ -136,6 +141,8 @@ func (t *ToolSystem) GetToolName() string {
 		return "Path"
 	case ToolNPC:
 		return "NPC"
+	case ToolSpawner:
+		return "Spawner"
 	default:
 		return "Unknown"
 	}
@@ -384,6 +391,56 @@ func (t *ToolSystem) HandleNPCTool(mapData *mapio.MapData, worldX, worldY float6
 		}
 	}
 }
+
+// HandleSpawnerTool places or edits enemy spawners. Left click to place/select, Right click to remove selected/nearest.
+func (t *ToolSystem) HandleSpawnerTool(mapData *mapio.MapData, worldX, worldY float64, leftClick, rightClick bool) {
+	if leftClick {
+		// hit test existing spawner
+		hit := -1
+		for i, sp := range mapData.Spawners {
+			dx := float64(sp.Pos.X) - worldX
+			dy := float64(sp.Pos.Y) - worldY
+			if math.Sqrt(dx*dx+dy*dy) < 20 {
+				hit = i
+				break
+			}
+		}
+		if hit >= 0 {
+			t.selectedSpawner = hit
+		} else {
+			mapData.Spawners = append(mapData.Spawners, mapio.EnemySpawner{
+				Pos:             mapio.Pos{X: float32(worldX), Y: float32(worldY)},
+				Radius:          200,
+				MaxAlive:        3,
+				IntervalSeconds: 5,
+			})
+			t.selectedSpawner = len(mapData.Spawners) - 1
+		}
+	}
+	if rightClick {
+		if t.selectedSpawner >= 0 && t.selectedSpawner < len(mapData.Spawners) {
+			mapData.Spawners = append(mapData.Spawners[:t.selectedSpawner], mapData.Spawners[t.selectedSpawner+1:]...)
+			t.selectedSpawner = -1
+			return
+		}
+		idx := -1
+		best := 999999.0
+		for i, sp := range mapData.Spawners {
+			dx := float64(sp.Pos.X) - worldX
+			dy := float64(sp.Pos.Y) - worldY
+			d := math.Sqrt(dx*dx + dy*dy)
+			if d < 25 && d < best {
+				idx = i
+				best = d
+			}
+		}
+		if idx >= 0 {
+			mapData.Spawners = append(mapData.Spawners[:idx], mapData.Spawners[idx+1:]...)
+		}
+	}
+}
+
+func (t *ToolSystem) GetSelectedSpawner() int { return t.selectedSpawner }
 
 func (t *ToolSystem) GetSelectedNPC() int { return t.selectedNPC }
 

@@ -271,6 +271,8 @@
 0, 994.7, 1444.8
 ---NPCS---
 NPC, NPC, 1070.6, 926.3, -, import/Characters/hamster.png, This is  line 1|This is my seocnd line|This is my last line
+---SPAWNERS---
+SPAWNER, 1519.1, 634.9, 200.0, 7, 1.0
 ---NODES---
 NODE, 0, 49.0, 490.0
 NODE, 1, 336.0, 534.0

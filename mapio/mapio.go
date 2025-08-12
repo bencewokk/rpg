@@ -34,13 +34,14 @@ type Sprite struct {
 
 // MapData contains all map information
 type MapData struct {
-	Width   int
-	Height  int
-	Tiles   [][]int
-	Nodes   []Node
-	Paths   []Path
-	Sprites []Sprite
-	NPCs    []NPC
+	Width    int
+	Height   int
+	Tiles    [][]int
+	Nodes    []Node
+	Paths    []Path
+	Sprites  []Sprite
+	NPCs     []NPC
+	Spawners []EnemySpawner
 }
 
 // NPC represents a placed NPC with dialogue. VoiceKey reserved for future voice integration.
@@ -50,6 +51,15 @@ type NPC struct {
 	Dialogues  []string
 	VoiceKey   string // placeholder for future audio key/asset id
 	SpritePath string
+}
+
+// EnemySpawner defines an enemy spawn point with simple parameters.
+// IntervalSeconds: respawn check interval; MaxAlive: desired alive enemies maintained.
+type EnemySpawner struct {
+	Pos             Pos
+	Radius          float32
+	MaxAlive        int
+	IntervalSeconds float32
 }
 
 // NewMapData creates a new empty map with specified dimensions
@@ -79,10 +89,11 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 	defer file.Close()
 
 	mapData := &MapData{
-		Nodes:   []Node{},
-		Paths:   []Path{},
-		Sprites: []Sprite{},
-		NPCs:    []NPC{},
+		Nodes:    []Node{},
+		Paths:    []Path{},
+		Sprites:  []Sprite{},
+		NPCs:     []NPC{},
+		Spawners: []EnemySpawner{},
 	}
 
 	scanner := bufio.NewScanner(file)
@@ -90,6 +101,7 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 	isReadingNodes := false
 	isReadingPaths := false
 	isReadingNPCs := false
+	isReadingSpawners := false
 
 	y := 0
 	var maxWidth int
@@ -125,6 +137,14 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 			isReadingNodes = false
 			isReadingPaths = false
 			isReadingNPCs = true
+			isReadingSpawners = false
+			continue
+		case "---SPAWNERS---":
+			isReadingSprites = false
+			isReadingNodes = false
+			isReadingPaths = false
+			isReadingNPCs = false
+			isReadingSpawners = true
 			continue
 		}
 
@@ -157,6 +177,14 @@ func LoadMapFromFile(filename string) (*MapData, error) {
 				continue
 			}
 			mapData.NPCs = append(mapData.NPCs, *npc)
+
+		} else if isReadingSpawners {
+			sp, err := parseSpawnerLine(line)
+			if err != nil {
+				fmt.Printf("Warning: Invalid SPAWNER data: %s\n", line)
+				continue
+			}
+			mapData.Spawners = append(mapData.Spawners, *sp)
 
 		} else {
 			// Process map tile data
@@ -248,6 +276,14 @@ func SaveMapToFile(mapData *MapData, filename string) error {
 				path = "-"
 			}
 			writer.WriteString(fmt.Sprintf("NPC, %s, %.1f, %.1f, %s, %s, %s\n", n.Name, n.Pos.X, n.Pos.Y, voice, path, joined))
+		}
+	}
+
+	// Write spawners section
+	if len(mapData.Spawners) > 0 {
+		writer.WriteString("---SPAWNERS---\n")
+		for _, sp := range mapData.Spawners {
+			writer.WriteString(fmt.Sprintf("SPAWNER, %.1f, %.1f, %.1f, %d, %.1f\n", sp.Pos.X, sp.Pos.Y, sp.Radius, sp.MaxAlive, sp.IntervalSeconds))
 		}
 	}
 
@@ -400,6 +436,38 @@ func parseNPCLine(line string) (*NPC, error) {
 		dialogues[i] = strings.TrimSpace(d)
 	}
 	return &NPC{Name: name, Pos: Pos{X: float32(x), Y: float32(y)}, Dialogues: dialogues, VoiceKey: voiceKey, SpritePath: spritePath}, nil
+}
+
+// parseSpawnerLine parses: SPAWNER, X, Y, Radius, MaxAlive, IntervalSeconds
+func parseSpawnerLine(line string) (*EnemySpawner, error) {
+	values := strings.Split(line, ",")
+	if len(values) != 6 {
+		return nil, fmt.Errorf("invalid spawner format")
+	}
+	if strings.TrimSpace(values[0]) != "SPAWNER" {
+		return nil, fmt.Errorf("not a spawner line")
+	}
+	xf, err := strconv.ParseFloat(strings.TrimSpace(values[1]), 32)
+	if err != nil {
+		return nil, fmt.Errorf("invalid spawner X")
+	}
+	yf, err := strconv.ParseFloat(strings.TrimSpace(values[2]), 32)
+	if err != nil {
+		return nil, fmt.Errorf("invalid spawner Y")
+	}
+	rf, err := strconv.ParseFloat(strings.TrimSpace(values[3]), 32)
+	if err != nil {
+		return nil, fmt.Errorf("invalid radius")
+	}
+	maxAlive, err := strconv.Atoi(strings.TrimSpace(values[4]))
+	if err != nil {
+		return nil, fmt.Errorf("invalid maxAlive")
+	}
+	interval, err := strconv.ParseFloat(strings.TrimSpace(values[5]), 32)
+	if err != nil {
+		return nil, fmt.Errorf("invalid interval")
+	}
+	return &EnemySpawner{Pos: Pos{X: float32(xf), Y: float32(yf)}, Radius: float32(rf), MaxAlive: maxAlive, IntervalSeconds: float32(interval)}, nil
 }
 
 // GetTile safely gets a tile value at the specified coordinates

@@ -113,9 +113,10 @@ func (c *character) updateAnimation() {
 		desired = "idle_" + facing
 	}
 
-	if desired != c.currentAnimName {
-		anim := animationManager.Get("character", desired)
-		if anim != nil {
+	// If switching states, or if current attack animation finished but we're still marked attacking (e.g. chain), restart.
+	if desired != c.currentAnimName || (c.attacking && c.animPlayer.Finished && c.currentAnimName == desired) {
+		if anim := animationManager.Get("character", desired); anim != nil {
+			// reset = true ensures restart of frames
 			c.animPlayer.SetAnimation(anim, true)
 			c.currentAnimName = desired
 		}
@@ -174,10 +175,24 @@ func (c *character) attack() {
 	c.sinceAttack = 0.32           // was 0.52
 	c.offsetForAnimationAttack = 0 // legacy field, retained for now
 
+	// Force restart the attack animation even if the state string matches previous
+	facing := "front"
+	if c.facingNorth == 1 {
+		facing = "back"
+	}
+	attackAnimName := "attack_" + facing
+	if anim := animationManager.Get("character", attackAnimName); anim != nil {
+		c.animPlayer.SetAnimation(anim, true) // reset=true ensures frame index starts at 0
+		c.currentAnimName = attackAnimName
+	}
+
 	es := enemiesInRange(c.pos, 80)
 
 	for i := 0; i < len(es); i++ {
 		e := es[i]
+		if e.dead || e.hp <= 0 {
+			continue
+		}
 		// Roll base damage in range
 		varDmg := MIN_DAMAGE + rand.Float32()*(MAX_DAMAGE-MIN_DAMAGE)
 		crit := false

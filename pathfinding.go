@@ -190,6 +190,95 @@ type priorityQueueItem struct {
 	previous *priorityQueueItem
 }
 
+// nodesWithinCircle returns node IDs whose positions lie within radius of center
+func nodesWithinCircle(center pos, radius float32) map[int]bool {
+	allowed := make(map[int]bool)
+	r2 := radius * radius
+	for _, n := range game.currentmap.nodes {
+		dx := n.pos.float_x - center.float_x
+		dy := n.pos.float_y - center.float_y
+		if dx*dx+dy*dy <= r2 {
+			allowed[n.id] = true
+		}
+	}
+	return allowed
+}
+
+// findClosestAllowedNodeID returns the allowed node closest to target; -1 if none
+func findClosestAllowedNodeID(target pos, allowed map[int]bool) int {
+	best := -1
+	bestD := float32(1e9)
+	for _, n := range game.currentmap.nodes {
+		if !allowed[n.id] {
+			continue
+		}
+		d := Distance(n.pos, target)
+		if d < bestD {
+			bestD = d
+			best = n.id
+		}
+	}
+	return best
+}
+
+// findShortestPathPositionsConstrained limits traversal to allowed node IDs
+func findShortestPathPositionsConstrained(startID, goalID int, allowed map[int]bool) []pos {
+	if !allowed[startID] || !allowed[goalID] {
+		return nil
+	}
+	pq := []priorityQueueItem{{nodeID: startID, cost: 0, previous: nil}}
+	costSoFar := make(map[int]float32)
+	costSoFar[startID] = 0
+	visited := make(map[int]bool)
+
+	// To reconstruct path
+	prev := make(map[int]*priorityQueueItem)
+	prev[startID] = &pq[0]
+
+	for len(pq) > 0 {
+		cur := pq[0]
+		pq = pq[1:]
+		if visited[cur.nodeID] {
+			continue
+		}
+		visited[cur.nodeID] = true
+		if cur.nodeID == goalID {
+			// reconstruct
+			var path []pos
+			step := &cur
+			for step != nil {
+				node := findNodeByID(step.nodeID)
+				if node != nil {
+					path = append([]pos{node.pos}, path...)
+				}
+				step = step.previous
+			}
+			return path
+		}
+		for _, p := range game.currentmap.paths {
+			var neighborID int
+			if p.nodeA.id == cur.nodeID {
+				neighborID = p.nodeB.id
+			} else if p.nodeB.id == cur.nodeID {
+				neighborID = p.nodeA.id
+			} else {
+				continue
+			}
+			if !allowed[neighborID] {
+				continue
+			}
+			newCost := costSoFar[cur.nodeID] + p.cost
+			if old, ok := costSoFar[neighborID]; !ok || newCost < old {
+				costSoFar[neighborID] = newCost
+				nxt := priorityQueueItem{nodeID: neighborID, cost: newCost, previous: &cur}
+				pq = append(pq, nxt)
+				sort.Slice(pq, func(i, j int) bool { return pq[i].cost < pq[j].cost })
+			}
+		}
+	}
+	return nil
+}
+
 func findShortestPathPositions(startID, goalID int) []pos {
 	// Priority queue for exploring nodes, ordered by cost
 	pq := []priorityQueueItem{

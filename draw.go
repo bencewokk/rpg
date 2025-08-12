@@ -45,6 +45,9 @@ func drawTile(screen, t *ebiten.Image, i, j int) {
 }
 
 func (e *enemy) draw(screen *ebiten.Image) {
+	if e.dead {
+		return
+	}
 	op := &ebiten.DrawImageOptions{}
 
 	e.todoEnemy()

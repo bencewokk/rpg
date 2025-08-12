@@ -64,36 +64,38 @@ func parseTextureAndSprites() {
 
 	for i := 0; i < game.currentmap.height; i++ {
 		for j := 0; j < game.currentmap.width; j++ {
-
-			var textureID string = ""
-
+			if i < 0 || i >= len(game.currentmap.data) || j < 0 || j >= len(game.currentmap.data[i]) {
+				continue
+			}
+			var textureID string
 			if game.currentmap.data[i][j] == 3 {
-				// Check for out-of-bounds for each neighboring tile
-				if game.currentmap.data[i-1][j] == 3 { // upper
+				// neighbor helper
+				isDry := func(y, x int) bool {
+					if y < 0 || y >= len(game.currentmap.data) || x < 0 || x >= len(game.currentmap.data[y]) {
+						return false
+					}
+					return game.currentmap.data[y][x] == 3
+				}
+				if isDry(i-1, j) {
 					textureID += "D"
 				} else {
 					textureID += "G"
 				}
-
-				if game.currentmap.data[i][j-1] == 3 { // left
+				if isDry(i, j-1) {
 					textureID += "D"
 				} else {
 					textureID += "G"
 				}
-
-				if game.currentmap.data[i][j+1] == 3 { // right
+				if isDry(i, j+1) {
 					textureID += "D"
 				} else {
 					textureID += "G"
 				}
-
-				if game.currentmap.data[i+1][j] == 3 { // lower
+				if isDry(i+1, j) {
 					textureID += "D"
 				} else {
 					textureID += "G"
 				}
-
-				// Assign the appropriate texture based on the ID
 				if texture, exists := dryTransitionsTextures[textureID]; exists {
 					game.currentmap.texture[i][j] = texture
 				}

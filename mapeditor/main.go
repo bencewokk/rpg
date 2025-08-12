@@ -142,9 +142,9 @@ func (e *MapEditor) Update() error {
 		}
 	}
 
-	// Handle file operations
+	// Handle file operations (save now requires Ctrl+Shift+S)
 	if ebiten.IsKeyPressed(ebiten.KeyControl) {
-		if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+		if ebiten.IsKeyPressed(ebiten.KeyShift) && inpututil.IsKeyJustPressed(ebiten.KeyS) {
 			mapio.SaveMapToFile(e.mapData, "../map.txt")
 			fmt.Println("Map saved!")
 			e.ui.ShowStatus("Map saved!")
@@ -182,6 +182,58 @@ func (e *MapEditor) Update() error {
 
 	// Update tools with current UI selection
 	e.updateTools()
+
+	// Spawner parameter editing shortcuts when spawner tool active
+	if e.ui.selectedTool == ToolSpawner {
+		idx := e.tools.GetSelectedSpawner()
+		if idx >= 0 && idx < len(e.mapData.Spawners) {
+			sp := &e.mapData.Spawners[idx]
+			// Radius adjust: Q/E (-/+) small, Ctrl for bigger
+			stepR := float32(5)
+			if ebiten.IsKeyPressed(ebiten.KeyControl) {
+				stepR = 25
+			}
+			if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
+				sp.Radius -= stepR
+				if sp.Radius < 20 {
+					sp.Radius = 20
+				}
+			}
+			if inpututil.IsKeyJustPressed(ebiten.KeyE) {
+				sp.Radius += stepR
+			}
+			// MaxAlive adjust: Z/X
+			if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
+				sp.MaxAlive -= 1
+				if sp.MaxAlive < 1 {
+					sp.MaxAlive = 1
+				}
+			}
+			if inpututil.IsKeyJustPressed(ebiten.KeyX) {
+				sp.MaxAlive += 1
+				if sp.MaxAlive > 50 {
+					sp.MaxAlive = 50
+				}
+			}
+			// Interval adjust: R/F (increase/decrease)
+			stepI := float32(0.5)
+			if ebiten.IsKeyPressed(ebiten.KeyControl) {
+				stepI = 2
+			}
+			if inpututil.IsKeyJustPressed(ebiten.KeyF) {
+				sp.IntervalSeconds -= stepI
+				if sp.IntervalSeconds < 0.5 {
+					sp.IntervalSeconds = 0.5
+				}
+			}
+			if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+				sp.IntervalSeconds += stepI
+				if sp.IntervalSeconds > 120 {
+					sp.IntervalSeconds = 120
+				}
+			}
+		}
+	}
 
 	return nil
 }
@@ -260,6 +312,9 @@ func (e *MapEditor) updateTools() {
 	case ToolNPC:
 		// Handle NPC placement/removal
 		e.tools.HandleNPCTool(e.mapData, worldX, worldY, leftClick, rightClick)
+	case ToolSpawner:
+		// Handle enemy spawner placement/removal
+		e.tools.HandleSpawnerTool(e.mapData, worldX, worldY, leftClick, rightClick)
 	}
 }
 
@@ -272,6 +327,49 @@ func (e *MapEditor) Draw(screen *ebiten.Image) {
 
 	// Draw nodes and paths
 	e.drawNodes(screen)
+
+	// Draw spawners
+	for i, sp := range e.mapData.Spawners {
+		sx := e.offsetsx(sp.Pos.X)
+		sy := e.offsetsy(sp.Pos.Y)
+		col := color.RGBA{200, 80, 80, 255}
+		if i == e.tools.GetSelectedSpawner() {
+			col = color.RGBA{255, 150, 50, 255}
+		}
+		vector.DrawFilledCircle(screen, sx, sy, 7, col, false)
+		vector.StrokeCircle(screen, sx, sy, 7, 2, color.RGBA{0, 0, 0, 255}, false)
+		// radius preview (thin ring)
+		if i == e.tools.GetSelectedSpawner() {
+			vector.StrokeCircle(screen, sx, sy, sp.Radius*float32(e.camera.Zoom)/float32(tileSize), 1, color.RGBA{255, 120, 60, 160}, false)
+		}
+		// label
+		lbl := fmt.Sprintf("SP %d", i+1)
+		ebitenutil.DebugPrintAt(screen, lbl, int(sx)-10, int(sy)-22)
+	}
+
+	// Spawner parameter panel
+	if e.ui.selectedTool == ToolSpawner {
+		idx := e.tools.GetSelectedSpawner()
+		if idx >= 0 && idx < len(e.mapData.Spawners) {
+			sp := e.mapData.Spawners[idx]
+			panelX, panelY := 120, 10
+			panelW, panelH := 240, 120
+			vector.DrawFilledRect(screen, float32(panelX), float32(panelY), float32(panelW), float32(panelH), color.RGBA{60, 55, 55, 210}, false)
+			vector.StrokeRect(screen, float32(panelX), float32(panelY), float32(panelW), float32(panelH), 2, color.RGBA{0, 0, 0, 255}, false)
+			line := panelY + 10
+			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Spawner %d", idx), panelX+10, line)
+			line += 15
+			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Radius: %.0f (Q/E +/- Ctrl bigger)", sp.Radius), panelX+10, line)
+			line += 15
+			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("MaxAlive: %d (Z/X +/-)", sp.MaxAlive), panelX+10, line)
+			line += 15
+			ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Interval: %.1fs (F-/R+ Ctrl bigger)", sp.IntervalSeconds), panelX+10, line)
+			line += 15
+			ebitenutil.DebugPrintAt(screen, "L: place/select  R: delete", panelX+10, line)
+			line += 15
+			ebitenutil.DebugPrintAt(screen, "Ctrl+S save map", panelX+10, line)
+		}
+	}
 
 	// Draw UI elements
 	e.ui.Draw(screen)

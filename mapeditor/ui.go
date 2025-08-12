@@ -14,7 +14,7 @@ type UI struct {
 	selectedTileType int
 	showGrid         bool
 	tileButtons      [4]Button
-	toolButtons      [5]Button // 5 tools now (added NPC)
+	toolButtons      [6]Button // added Spawner
 	selectedTool     ToolType
 	statusMessage    string
 	statusTimer      int
@@ -61,7 +61,7 @@ func NewUI() UI {
 	}
 
 	// Create tool buttons (add NPC)
-	toolNames := []string{"Paint", "Bucket", "Node", "Path", "NPC"}
+	toolNames := []string{"Paint", "Bucket", "Node", "Path", "NPC", "Spawner"}
 	toolY := startY + 4*(buttonHeight+10) + 20 // Below tile buttons
 
 	for i := 0; i < len(toolNames); i++ {
@@ -154,6 +154,9 @@ func (ui *UI) Update() {
 		if inpututil.IsKeyJustPressed(ebiten.KeyC) {
 			ui.selectedTool = ToolNPC
 		}
+		if !ebiten.IsKeyPressed(ebiten.KeyShift) && inpututil.IsKeyJustPressed(ebiten.KeyS) {
+			ui.selectedTool = ToolSpawner
+		}
 		// Toggle grid
 		if inpututil.IsKeyJustPressed(ebiten.KeyG) {
 			ui.showGrid = !ui.showGrid
@@ -245,14 +248,15 @@ func (ui *UI) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrintAt(screen, "N: Node tool", 20, instructionsY+60)
 	ebitenutil.DebugPrintAt(screen, "M: Path tool", 20, instructionsY+75)
 	ebitenutil.DebugPrintAt(screen, "C: NPC tool", 20, instructionsY+90)
-	ebitenutil.DebugPrintAt(screen, "LClick: Use tool", 20, instructionsY+105)
-	ebitenutil.DebugPrintAt(screen, "RClick: Delete/Cancel", 20, instructionsY+120)
-	ebitenutil.DebugPrintAt(screen, "MClick: Pan camera", 20, instructionsY+135)
-	ebitenutil.DebugPrintAt(screen, "Wheel: Zoom", 20, instructionsY+150)
-	ebitenutil.DebugPrintAt(screen, "G: Toggle grid", 20, instructionsY+165)
-	ebitenutil.DebugPrintAt(screen, "Ctrl+S: Save", 20, instructionsY+180)
-	ebitenutil.DebugPrintAt(screen, "Ctrl+Z: Undo", 20, instructionsY+195)
-	ebitenutil.DebugPrintAt(screen, "Ctrl+Y: Redo", 20, instructionsY+210)
+	ebitenutil.DebugPrintAt(screen, "S: Spawner tool", 20, instructionsY+105)
+	ebitenutil.DebugPrintAt(screen, "LClick: Use tool", 20, instructionsY+120)
+	ebitenutil.DebugPrintAt(screen, "RClick: Delete/Cancel", 20, instructionsY+135)
+	ebitenutil.DebugPrintAt(screen, "MClick: Pan camera", 20, instructionsY+150)
+	ebitenutil.DebugPrintAt(screen, "Wheel: Zoom", 20, instructionsY+165)
+	ebitenutil.DebugPrintAt(screen, "G: Toggle grid", 20, instructionsY+180)
+	ebitenutil.DebugPrintAt(screen, "Ctrl+Shift+S: Save", 20, instructionsY+195)
+	ebitenutil.DebugPrintAt(screen, "Ctrl+Z: Undo", 20, instructionsY+210)
+	ebitenutil.DebugPrintAt(screen, "Ctrl+Y: Redo", 20, instructionsY+225)
 
 	// Draw status message if active
 	if ui.statusMessage != "" {
@@ -263,11 +267,27 @@ func (ui *UI) Draw(screen *ebiten.Image) {
 	if ui.selectedTool == ToolNPC {
 		vector.DrawFilledRect(screen, 10, 520, 100, 140, mediumGray, false)
 		ebitenutil.DebugPrintAt(screen, "NPC Tool", 20, 525)
+		if ui.selectedTool == ToolSpawner {
+			vector.DrawFilledRect(screen, 10, 520, 100, 100, mediumGray, false)
+			ebitenutil.DebugPrintAt(screen, "Spawner", 20, 525)
+			ebitenutil.DebugPrintAt(screen, "L: place", 20, 540)
+			ebitenutil.DebugPrintAt(screen, "R: delete", 20, 555)
+		}
 		ebitenutil.DebugPrintAt(screen, "L: place/select", 20, 540)
 		ebitenutil.DebugPrintAt(screen, "R: del", 20, 555)
 		ebitenutil.DebugPrintAt(screen, "+: add line", 20, 570)
 		ebitenutil.DebugPrintAt(screen, "-: pop line", 20, 585)
 		// We can't access mapData directly here; selection summary is drawn in main Draw if needed.
+	}
+	if ui.selectedTool == ToolSpawner {
+		vector.DrawFilledRect(screen, 10, 520, 100, 120, mediumGray, false)
+		ebitenutil.DebugPrintAt(screen, "Spawner", 20, 525)
+		ebitenutil.DebugPrintAt(screen, "Q/E rad -/+", 12, 540)
+		ebitenutil.DebugPrintAt(screen, "Z/X cnt -/+", 12, 555)
+		ebitenutil.DebugPrintAt(screen, "F/R int -/+", 12, 570)
+		ebitenutil.DebugPrintAt(screen, "Ctrl bigger", 12, 585)
+		ebitenutil.DebugPrintAt(screen, "L place", 20, 600)
+		ebitenutil.DebugPrintAt(screen, "R del", 20, 615)
 	}
 }
 

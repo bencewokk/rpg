@@ -11,6 +11,8 @@ import (
 	"os"
 	"time"
 
+	"rpg/mapio"
+
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/wav"
 
@@ -41,7 +43,43 @@ var (
 func gameinit() {
 	rand.Seed(time.Now().UnixNano())
 
-	readMapData()
+	// Load map via shared mapio package for unification with editor
+	if md, err := mapio.LoadMapFromFile("map.txt"); err != nil {
+		fmt.Println("Failed to load map via mapio, falling back to legacy loader:", err)
+		readMapData() // legacy fallback
+	} else {
+		// Transfer data into game.currentmap
+		game.currentmap.width = md.Width
+		game.currentmap.height = md.Height
+		game.currentmap.data = make([][]int, md.Height)
+		game.currentmap.texture = make([][]*ebiten.Image, md.Height)
+		for y := 0; y < md.Height; y++ {
+			row := make([]int, md.Width)
+			copy(row, md.Tiles[y])
+			game.currentmap.data[y] = row
+			game.currentmap.texture[y] = make([]*ebiten.Image, md.Width)
+		}
+		// Nodes
+		for _, n := range md.Nodes {
+			node := createNode(n.ID, createPos(n.Pos.X, n.Pos.Y))
+			game.currentmap.nodes = append(game.currentmap.nodes, node)
+		}
+		// Paths
+		for _, p := range md.Paths {
+			path := createPath(findNodeByID(p.NodeAID), findNodeByID(p.NodeBID), p.Cost)
+			game.currentmap.paths = append(game.currentmap.paths, path)
+		}
+		// Sprites
+		for _, s := range md.Sprites {
+			createSprite(createPos(s.Pos.X, s.Pos.Y), s.Type)
+		}
+		// NPCs
+		for _, npc := range md.NPCs {
+			createNPCWithSprite(createPos(npc.Pos.X, npc.Pos.Y), npc.Dialogues, npc.SpritePath)
+		}
+		// Initialize runtime spawners from map spawners
+		initSpawners(md)
+	}
 	parseTextureAndSprites()
 
 	// Initialize new animation system
@@ -54,25 +92,20 @@ func gameinit() {
 	ebiten.SetWindowTitle("rpg")
 
 	createCharacter()
-	createEnemy(createPos(500, 500))
-	createEnemy(createPos(700, 500))
-	createEnemy(createPos(500, 400))
-	createEnemy(createPos(400, 900))
-
-	// Sample NPC (after enemies so player can interact)
-	createNPC(createPos(600, 600), []string{
-		"Hey there adventurer!",
-		"Nice day to wander the plains, isn't it?",
-		"Come back later, I might have a quest for you.",
-	})
-	createEnemy(createPos(500, 500))
-	createEnemy(createPos(700, 500))
-	createEnemy(createPos(500, 400))
-	createEnemy(createPos(400, 900))
-	createEnemy(createPos(500, 500))
-	createEnemy(createPos(700, 500))
-	createEnemy(createPos(500, 400))
-	createEnemy(createPos(400, 900))
+	// Spawn default enemies/NPC only if map didn't provide any
+	if len(game.currentmap.enemies) == 0 {
+		createEnemy(createPos(500, 500))
+		createEnemy(createPos(700, 500))
+		createEnemy(createPos(500, 400))
+		createEnemy(createPos(400, 900))
+	}
+	if len(game.currentmap.npcs) == 0 {
+		createNPC(createPos(600, 600), []string{
+			"Hey there adventurer!",
+			"Nice day to wander the plains, isn't it?",
+			"Come back later, I might have a quest for you.",
+		})
+	}
 
 	screendivisor = 30
 	intscreendivisor = 30
@@ -120,15 +153,11 @@ func gameinit() {
 }
 
 type gamemap struct {
-	// map data (2D array)
-	//
-	// 0 = not decided, 1 = mountains, 2 = plains, 3 = dry
-	data    [100][150]int
-	texture [100][150]*ebiten.Image
+	// map data (dynamic slices now)
+	// 0 = void, 1 = mountains, 2 = plains, 3 = dry
+	data    [][]int
+	texture [][]*ebiten.Image
 
-	// height of the map
-	//
-	//used for rendering and generating the map
 	height int
 	width  int
 	// non-hostile talkable NPCs
@@ -139,6 +168,8 @@ type gamemap struct {
 
 	players []*character
 	enemies []*enemy
+	// sprites captured from map (trees etc). Kept minimal for now; creation still handled elsewhere.
+	sprites []mapio.Sprite
 }
 
 // read more in gamestate
@@ -270,6 +301,8 @@ func (g *Game) Update() error {
 	if game.stateid == 3 {
 		updateNPCInteractions()
 		updateNPCAnimations(game.deltatime)
+		// Runtime spawning system
+		updateSpawners(game.deltatime)
 	}
 
 	// Music volume management (keeps music always playing; lowers on pause)
@@ -319,11 +352,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	case 3:
 		sortDrawables()
-
-		for i := 0; i < game.currentmap.height; i++ {
-			for j := 0; j < game.currentmap.width; j++ {
-				if game.currentmap.texture[i][j] != nil {
-					drawTile(screen, game.currentmap.texture[i][j], i, j)
+		for i := 0; i < game.currentmap.height && i < len(game.currentmap.texture); i++ {
+			for j := 0; j < game.currentmap.width && j < len(game.currentmap.texture[i]); j++ {
+				if tex := game.currentmap.texture[i][j]; tex != nil {
+					drawTile(screen, tex, i, j)
 				}
 			}
 		}
@@ -351,12 +383,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		drawConversationUI(screen)
 
 	case 2: // paused overlay: draw game scene behind then overlay
-		// First draw game world (reuse logic from case 3 without changing state)
+		// First draw game world with dynamic bounds
 		sortDrawables()
-		for i := 0; i < game.currentmap.height; i++ {
-			for j := 0; j < game.currentmap.width; j++ {
-				if game.currentmap.texture[i][j] != nil {
-					drawTile(screen, game.currentmap.texture[i][j], i, j)
+		for i := 0; i < game.currentmap.height && i < len(game.currentmap.texture); i++ {
+			for j := 0; j < game.currentmap.width && j < len(game.currentmap.texture[i]); j++ {
+				if tex := game.currentmap.texture[i][j]; tex != nil {
+					drawTile(screen, tex, i, j)
 				}
 			}
 		}

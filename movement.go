@@ -7,6 +7,17 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// safeTile returns tile value or 0 if out of bounds
+func safeTile(y, x int) int {
+	if y < 0 || y >= game.currentmap.height || y >= len(game.currentmap.data) {
+		return 0
+	}
+	if x < 0 || x >= game.currentmap.width || x >= len(game.currentmap.data[y]) {
+		return 0
+	}
+	return game.currentmap.data[y][x]
+}
+
 // 0 up, 1 down, 2 right, 3 left
 func (c *character) checkNextTile(way int) bool {
 
@@ -39,12 +50,12 @@ func (c *character) checkNextTile(way int) bool {
 		toprightpos.float_y -= 3
 
 		x, y = ptid(topleftpos)
-		if game.currentmap.data[y][x] == 1 {
+		if safeTile(y, x) == 1 {
 			return false
 		}
 
 		x, y = ptid(toprightpos)
-		if game.currentmap.data[y][x] == 1 {
+		if safeTile(y, x) == 1 {
 			return false
 		}
 
@@ -55,12 +66,12 @@ func (c *character) checkNextTile(way int) bool {
 		bottomleftpos.float_y += 3
 
 		x, y = ptid(bottomleftpos)
-		if game.currentmap.data[y][x] == 1 {
+		if safeTile(y, x) == 1 {
 			return false
 		}
 
 		x, y = ptid(bottomrightpos)
-		if game.currentmap.data[y][x] == 1 {
+		if safeTile(y, x) == 1 {
 			return false
 		}
 
@@ -72,12 +83,12 @@ func (c *character) checkNextTile(way int) bool {
 		toprightpos.float_x += 3
 
 		x, y = ptid(bottomrightpos)
-		if game.currentmap.data[y][x] == 1 {
+		if safeTile(y, x) == 1 {
 			return false
 		}
 
 		x, y = ptid(toprightpos)
-		if game.currentmap.data[y][x] == 1 {
+		if safeTile(y, x) == 1 {
 			return false
 		}
 
@@ -89,12 +100,12 @@ func (c *character) checkNextTile(way int) bool {
 		bottomleftpos.float_x -= 3
 
 		x, y = ptid(topleftpos)
-		if game.currentmap.data[y][x] == 1 {
+		if safeTile(y, x) == 1 {
 			return false
 		}
 
 		x, y = ptid(bottomleftpos)
-		if game.currentmap.data[y][x] == 1 {
+		if safeTile(y, x) == 1 {
 			return false
 		}
 
@@ -182,7 +193,7 @@ func (c *character) checkMovement() {
 	correctedPos := createPos(c.pos.float_x+screendivisor/2, c.pos.float_y+screendivisor/2)
 	x, y := ptid(correctedPos)
 	c.untilEndOfBoost -= game.deltatime
-	if game.currentmap.data[y][x] == 3 && !c.dashing && c.speed != BOOSTSPEED {
+	if safeTile(y, x) == 3 && !c.dashing && c.speed != BOOSTSPEED {
 		c.speed = BOOSTSPEED
 		c.untilEndOfBoost = 0.5
 
